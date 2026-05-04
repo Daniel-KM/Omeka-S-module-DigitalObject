@@ -6,67 +6,125 @@ use Omeka\Entity\Resource;
 
 /**
  * @Entity
+ * @Table(
+ *     indexes={
+ *         @Index(
+ *             name="idx_do_sha256",
+ *             columns={"sha256"}
+ *         ),
+ *         @Index(
+ *             name="idx_do_media_type",
+ *             columns={"media_type"}
+ *         )
+ *     }
+ * )
  */
 class DigitalObject extends Resource
 {
     /**
      * @Id
-     * @Column(type="integer")
+     * @Column(
+     *     type="integer"
+     * )
      */
     protected $id;
 
     /**
-     * @Column(type="json_array", nullable=true)
+     * @Column(
+     *     type="json_array",
+     *     nullable=true
+     * )
      */
     protected $data;
 
     /**
-     * @Column(type="text", nullable=true)
+     * @Column(
+     *     type="text",
+     *     nullable=true
+     * )
      */
     protected $source;
 
     /**
-     * @Column(nullable=true, length=190)
+     * @Column(
+     *     nullable=true,
+     *     length=190
+     * )
      */
     protected $mediaType;
 
     /**
-     * @Column(nullable=true, unique=true, length=190)
+     * @Column(
+     *     nullable=true,
+     *     unique=true,
+     *     length=190
+     * )
      */
     protected $storageId;
 
     /**
-     * @Column(nullable=true, length=190)
+     * @Column(
+     *     nullable=true,
+     *     length=190
+     * )
      */
     protected $extension;
 
     /**
-     * @Column(type="string", length=64, nullable=true, options={"fixed"=true})
+     * @Column(
+     *     type="string",
+     *     length=64,
+     *     nullable=true,
+     *     options={
+     *         "fixed"=true
+     *     }
+     * )
      */
     protected $sha256;
 
     /**
-     * @Column(type="bigint", nullable=true)
+     * @Column(
+     *     type="bigint",
+     *     nullable=true
+     * )
      */
     protected $size;
 
     /**
-     * @Column(type="boolean")
+     * @Column(
+     *     type="boolean",
+     *     nullable=false,
+     *     options={
+     *         "default": 0
+     *     }
+     * )
      */
     protected $hasOriginal = false;
 
     /**
-     * @Column(type="boolean")
+     * @Column(
+     *     type="boolean",
+     *     nullable=false,
+     *     options={
+     *         "default": 0
+     *     }
+     * )
      */
     protected $hasThumbnails = false;
 
     /**
-     * @Column(nullable=true, length=190)
+     * @Column(
+     *     nullable=true,
+     *     length=190
+     * )
      */
     protected $lang;
 
     /**
-     * @Column(type="text", nullable=true)
+     * @Column(
+     *     type="text",
+     *     nullable=true
+     * )
      */
     protected $altText;
 
@@ -75,9 +133,10 @@ class DigitalObject extends Resource
         return 'digital_objects';
     }
 
-    public function setData($data): void
+    public function setData($data): self
     {
         $this->data = $data;
+        return $this;
     }
 
     public function getData()
@@ -85,9 +144,10 @@ class DigitalObject extends Resource
         return $this->data;
     }
 
-    public function setSource($source): void
+    public function setSource($source): self
     {
         $this->source = $source;
+        return $this;
     }
 
     public function getSource()
@@ -95,9 +155,10 @@ class DigitalObject extends Resource
         return $this->source;
     }
 
-    public function setMediaType($mediaType): void
+    public function setMediaType($mediaType): self
     {
         $this->mediaType = $mediaType;
+        return $this;
     }
 
     public function getMediaType()
@@ -105,9 +166,10 @@ class DigitalObject extends Resource
         return $this->mediaType;
     }
 
-    public function setStorageId($storageId): void
+    public function setStorageId($storageId): self
     {
         $this->storageId = $storageId;
+        return $this;
     }
 
     public function getStorageId()
@@ -125,9 +187,10 @@ class DigitalObject extends Resource
             : $this->storageId . '.' . $this->extension;
     }
 
-    public function setExtension($extension): void
+    public function setExtension($extension): self
     {
         $this->extension = $extension;
+        return $this;
     }
 
     public function getExtension()
@@ -135,9 +198,10 @@ class DigitalObject extends Resource
         return $this->extension;
     }
 
-    public function setSha256($sha256): void
+    public function setSha256($sha256): self
     {
         $this->sha256 = $sha256;
+        return $this;
     }
 
     public function getSha256()
@@ -145,9 +209,10 @@ class DigitalObject extends Resource
         return $this->sha256;
     }
 
-    public function setSize($size): void
+    public function setSize($size): self
     {
         $this->size = $size;
+        return $this;
     }
 
     public function getSize()
@@ -155,9 +220,10 @@ class DigitalObject extends Resource
         return $this->size;
     }
 
-    public function setHasOriginal($hasOriginal): void
+    public function setHasOriginal($hasOriginal): self
     {
         $this->hasOriginal = (bool) $hasOriginal;
+        return $this;
     }
 
     public function hasOriginal(): bool
@@ -165,9 +231,10 @@ class DigitalObject extends Resource
         return $this->hasOriginal;
     }
 
-    public function setHasThumbnails($hasThumbnails): void
+    public function setHasThumbnails($hasThumbnails): self
     {
         $this->hasThumbnails = (bool) $hasThumbnails;
+        return $this;
     }
 
     public function hasThumbnails(): bool
@@ -175,9 +242,10 @@ class DigitalObject extends Resource
         return $this->hasThumbnails;
     }
 
-    public function setLang($lang): void
+    public function setLang($lang): self
     {
         $this->lang = $lang;
+        return $this;
     }
 
     public function getLang()
@@ -185,9 +253,10 @@ class DigitalObject extends Resource
         return $this->lang;
     }
 
-    public function setAltText($altText): void
+    public function setAltText($altText): self
     {
         $this->altText = $altText;
+        return $this;
     }
 
     public function getAltText()
