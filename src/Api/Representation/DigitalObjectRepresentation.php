@@ -216,6 +216,23 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return sprintf('<a href="%s">%s</a>', $escape($url), $escape($title));
     }
 
+    public function siteUrl($siteSlug = null, $canonical = false)
+    {
+        if ($siteSlug === null) {
+            $siteSlug = $this->getServiceLocator()->get('Application')
+                ->getMvcEvent()->getRouteMatch()->getParam('site-slug');
+        }
+        $url = $this->getViewHelper('Url');
+        return $url(
+            'site/digital-object',
+            [
+                'site-slug' => $siteSlug,
+                'id' => $this->id(),
+            ],
+            ['force_canonical' => $canonical]
+        );
+    }
+
     public function adminUrl($action = null, $canonical = false)
     {
         $url = $this->getViewHelper('Url');

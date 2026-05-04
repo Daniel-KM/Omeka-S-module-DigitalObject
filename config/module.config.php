@@ -19,6 +19,7 @@ return [
     'controllers' => [
         'invokables' => [
             'DigitalObject\Controller\Admin\DigitalObject' => Controller\Admin\DigitalObjectController::class,
+            'DigitalObject\Controller\Site\DigitalObject' => Controller\Site\DigitalObjectController::class,
         ],
     ],
     'data_types' => [
@@ -83,11 +84,35 @@ return [
     ],
     'resource_page_blocks_default' => [
         'digital_objects' => [
-            'main' => [],
+            // Like a media page (render + values), plus the linked resources.
+            'main' => [
+                'digital_object_render',
+                'values',
+                'linkedResources',
+            ],
         ],
     ],
     'router' => [
         'routes' => [
+            'site' => [
+                'child_routes' => [
+                    'digital-object' => [
+                        'type' => \Laminas\Router\Http\Segment::class,
+                        'options' => [
+                            'route' => '/digital-object/:id[/:action]',
+                            'constraints' => [
+                                'id' => '\d+',
+                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                            ],
+                            'defaults' => [
+                                '__NAMESPACE__' => 'DigitalObject\Controller\Site',
+                                'controller' => 'DigitalObject\Controller\Site\DigitalObject',
+                                'action' => 'show',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
             'admin' => [
                 'child_routes' => [
                     'digital-object' => [

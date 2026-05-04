@@ -109,6 +109,12 @@ class Module extends AbstractModule
                 [$entity, $adapter],
                 ['read', 'search']
             )
+            // Public access to the site controller (like core site
+            // controllers).
+            ->allow(
+                null,
+                ['DigitalObject\Controller\Site\DigitalObject']
+            )
             ->allow(
                 [
                     \Omeka\Permissions\Acl::ROLE_AUTHOR,
