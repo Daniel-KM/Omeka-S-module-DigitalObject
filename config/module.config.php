@@ -166,6 +166,11 @@ return [
             ],
         ],
     ],
+    'searchsolr_value_extractors' => [
+        'factories' => [
+            'digital_objects' => Service\SearchSolr\ValueExtractorFactory::class,
+        ],
+    ],
     'digitalobject' => [
         'config' => [
             // RDF properties whose values (of type "resource") pointing to a
