@@ -3,6 +3,7 @@
 namespace DigitalObject\Form;
 
 use Laminas\Form\Element;
+use Laminas\Form\Fieldset;
 use Laminas\Form\Form;
 use Omeka\Form\Element as OmekaElement;
 
@@ -46,7 +47,7 @@ class ConfigForm extends Form
 
         $this
             ->add([
-                'type' => Element\Fieldset::class,
+                'type' => Fieldset::class,
                 'name' => 'convert_media',
                 'options' => [
                     'label' => 'Convert media to digital objects', // @translate
@@ -143,6 +144,55 @@ class ConfigForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'convert-dry-run',
+                ],
+            ])
+        ;
+
+        // Fieldset for conversion to media.
+
+        $this
+            ->add([
+                'type' => Fieldset::class,
+                'name' => 'revert_digital_objects',
+                'options' => [
+                    'label' => 'Revert digital objects to media', // @translate
+                    'info' => 'Reverse of the conversion above: for each digital object, restore a media row attached to its referencing item. Digital objects referenced by multiple items are skipped (would require duplication). The referencing value is removed by default.', // @translate
+                ],
+            ])
+
+            ->get('revert_digital_objects')
+
+            ->add([
+                'name' => 'process',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Process reversion when saving the configuration', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'revert-do-process',
+                ],
+            ])
+            ->add([
+                'name' => 'delete_values',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Delete referencing values', // @translate
+                    'info' => 'Drop the property values that pointed to each converted digital object. Recommended, otherwise the item ends up with both a media and a redundant resource value.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'revert-delete-values',
+                    'value' => '1',
+                ],
+            ])
+            ->add([
+                'name' => 'dry_run',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Dry run', // @translate
+                    'info' => 'Log what would be reverted without modifying the database.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'revert-dry-run',
                 ],
             ])
         ;
