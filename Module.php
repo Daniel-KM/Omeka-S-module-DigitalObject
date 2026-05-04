@@ -55,6 +55,49 @@ class Module extends AbstractModule
             );
     }
 
+    public function warnUninstall($event): void
+    {
+        $view = $event->getTarget();
+        $module = $view->vars()->module;
+        if ($module->getId() !== __NAMESPACE__) {
+            return;
+        }
+
+        $services = $this->getServiceLocator();
+        $connection = $services->get('Omeka\Connection');
+        $count = (int) $connection->fetchOne('SELECT COUNT(id) FROM digital_object');
+        if (!$count) {
+            return;
+        }
+
+        $t = $services->get('MvcTranslator');
+        $html = '<p style="color:#c00"><strong>' . $t->translate('WARNING') . '</strong>: '; // @translate
+        $html .= sprintf(
+            $t->translate('%d digital objects still exist. Uninstallation is blocked. Convert them back to media via the module configuration page, or delete them individually through the admin interface before uninstalling. Removing them directly from the database would leave orphan files and derivatives on disk.'), // @translate
+            $count
+        );
+        $html .= '</p>';
+
+        echo $html;
+    }
+
+    protected function preUninstall(): void
+    {
+        $services = $this->getServiceLocator();
+        $connection = $services->get('Omeka\Connection');
+        $count = (int) $connection->fetchOne('SELECT COUNT(id) FROM digital_object');
+        if ($count === 0) {
+            return;
+        }
+
+        $translator = $services->get('MvcTranslator');
+        $message = sprintf(
+            $translator->translate('Cannot uninstall: %d digital objects still exist. Convert them back to media via the module configuration page, or delete them individually through the admin interface.'), // @translate
+            $count
+        );
+        throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
+    }
+
     protected function preInstall(): void
     {
         $services = $this->getServiceLocator();
@@ -76,6 +119,12 @@ class Module extends AbstractModule
             Api\Adapter\DigitalObjectAdapter::class,
             'api.delete.pre',
             [$this, 'deleteFiles']
+        );
+
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Module',
+            'view.details',
+            [$this, 'warnUninstall']
         );
 
         $sharedEventManager->attach(
