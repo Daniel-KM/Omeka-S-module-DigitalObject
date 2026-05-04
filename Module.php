@@ -43,6 +43,27 @@ class Module extends AbstractModule
             'api.delete.pre',
             [$this, 'deleteFiles']
         );
+        foreach ([
+            'Omeka\Controller\Admin\Item',
+            'Omeka\Controller\Site\Item',
+        ] as $controller) {
+            $sharedEventManager->attach($controller, 'view.show.sidebar', [$this, 'displayInline']);
+            $sharedEventManager->attach($controller, 'view.details', [$this, 'displayInline']);
+        }
+    }
+
+    public function displayInline($event): void
+    {
+        $view = $event->getTarget();
+        $item = $view->vars()->resource ?? $view->vars()->item ?? null;
+        if (!$item) {
+            return;
+        }
+        $dos = $view->digitalObjectInline($item);
+        if (empty($dos)) {
+            return;
+        }
+        echo $view->partial('common/digital-object-inline', ['digitalObjects' => $dos]);
     }
 
     public function deleteFiles($event): void
