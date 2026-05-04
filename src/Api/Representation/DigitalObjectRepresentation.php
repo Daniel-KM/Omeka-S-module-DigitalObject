@@ -132,6 +132,17 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return null;
     }
 
+    public function valueRepresentation()
+    {
+        $representation = parent::valueRepresentation();
+        if (!isset($representation['thumbnail_url']) && $this->hasThumbnails()) {
+            $representation['thumbnail_url'] = $this->thumbnailUrl('square');
+            $representation['thumbnail_title'] = $this->displayTitle();
+            $representation['thumbnail_type'] = $this->mediaType();
+        }
+        return $representation;
+    }
+
     public function thumbnailDisplayUrl($type)
     {
         $thumbnail = $this->thumbnail();

@@ -67,6 +67,11 @@ return [
             'digitalObjectInline' => Service\ViewHelper\DigitalObjectInlineFactory::class,
         ],
     ],
+    'block_layouts' => [
+        'factories' => [
+            'digitalObjects' => Service\Site\BlockLayout\DigitalObjectsFactory::class,
+        ],
+    ],
     'router' => [
         'routes' => [
             'admin' => [

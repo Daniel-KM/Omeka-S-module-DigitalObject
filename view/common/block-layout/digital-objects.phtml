@@ -1,0 +1,22 @@
+<?php
+$hyperlink = $this->plugin('hyperlink');
+$escape = $this->plugin('escapeHtml');
+?>
+<div class="<?= $escape(implode(' ', $classes)) ?>">
+    <?php foreach ($digitalObjects as $do): ?>
+    <?php $caption = $captions[$do->id()] ?? ''; ?>
+    <div class="item resource digital-object">
+        <?php if ($mediaDisplay === 'thumbnail'): ?>
+            <?= $hyperlink->raw($this->thumbnail($do, $thumbnailType), $do->originalUrl() ?: $do->url()) ?>
+        <?php else: ?>
+            <?= $do->render() ?>
+        <?php endif; ?>
+        <?php if ($showTitleOption === 'item_title'): ?>
+        <h3><?= $do->link($do->displayTitle()) ?></h3>
+        <?php endif; ?>
+        <?php if ($caption !== ''): ?>
+        <div class="caption"><?= $escape($caption) ?></div>
+        <?php endif; ?>
+    </div>
+    <?php endforeach; ?>
+</div>
