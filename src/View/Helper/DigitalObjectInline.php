@@ -18,7 +18,7 @@ class DigitalObjectInline extends AbstractHelper
 
     /**
      * Return DigitalObjects referenced by the given resource via the configured
-     * properties (default: foaf:depiction).
+     * properties.
      *
      * @return DigitalObjectRepresentation[]
      */

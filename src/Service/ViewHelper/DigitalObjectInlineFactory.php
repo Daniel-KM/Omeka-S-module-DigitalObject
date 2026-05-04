@@ -10,8 +10,12 @@ class DigitalObjectInlineFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
     {
-        $config = $container->get('Config');
-        $properties = $config['digitalobject']['config']['digitalobject_inline_properties'] ?? ['foaf:depiction'];
+        $settings = $container->get('Omeka\Settings');
+        $properties = $settings->get('digitalobject_inline_properties', []);
+        if (!$properties) {
+            $config = $container->get('Config');
+            $properties = $config['digitalobject']['config']['digitalobject_inline_properties'] ?? [];
+        }
         return new DigitalObjectInline($properties);
     }
 }

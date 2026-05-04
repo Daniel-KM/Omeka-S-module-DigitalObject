@@ -2,6 +2,13 @@
 
 namespace DigitalObject;
 
+if (!class_exists('Common\TraitModule', false)) {
+    require_once file_exists(dirname(__DIR__) . '/Common/src/TraitModule.php')
+        ? dirname(__DIR__) . '/Common/src/TraitModule.php'
+        : dirname(__DIR__) . '/Common/TraitModule.php';
+}
+
+use Common\TraitModule;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\ServiceManager\ServiceLocatorInterface;
@@ -9,94 +16,14 @@ use Omeka\Module\AbstractModule;
 
 class Module extends AbstractModule
 {
-    const NAMESPACE = __NAMESPACE__;
+    use TraitModule;
 
-    public function getConfig(): array
-    {
-        return include __DIR__ . '/config/module.config.php';
-    }
+    const NAMESPACE = __NAMESPACE__;
 
     public function onBootstrap(MvcEvent $event): void
     {
         parent::onBootstrap($event);
-        $this->addAclRules();
-    }
 
-    public function install(ServiceLocatorInterface $services): void
-    {
-        $connection = $services->get('Omeka\Connection');
-        $sql = file_get_contents(__DIR__ . '/data/install/schema.sql');
-        $connection->executeStatement($sql);
-    }
-
-    public function uninstall(ServiceLocatorInterface $services): void
-    {
-        $connection = $services->get('Omeka\Connection');
-        $sql = file_get_contents(__DIR__ . '/data/install/uninstall.sql');
-        $connection->executeStatement($sql);
-    }
-
-    public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
-    {
-        $sharedEventManager->attach(
-            Api\Adapter\DigitalObjectAdapter::class,
-            'api.delete.pre',
-            [$this, 'deleteFiles']
-        );
-        foreach ([
-            'Omeka\Controller\Admin\Item',
-            'Omeka\Controller\Site\Item',
-        ] as $controller) {
-            $sharedEventManager->attach($controller, 'view.show.sidebar', [$this, 'displayInline']);
-            $sharedEventManager->attach($controller, 'view.details', [$this, 'displayInline']);
-        }
-    }
-
-    public function displayInline($event): void
-    {
-        $view = $event->getTarget();
-        $item = $view->vars()->resource ?? $view->vars()->item ?? null;
-        if (!$item) {
-            return;
-        }
-        $dos = $view->digitalObjectInline($item);
-        if (empty($dos)) {
-            return;
-        }
-        echo $view->partial('common/digital-object-inline', ['digitalObjects' => $dos]);
-    }
-
-    public function deleteFiles($event): void
-    {
-        $request = $event->getParam('request');
-        $services = $this->getServiceLocator();
-        $api = $services->get('Omeka\ApiManager');
-        try {
-            $do = $api->read('digital_objects', $request->getId())->getContent();
-        } catch (\Exception $e) {
-            return;
-        }
-        $storageId = $do->storageId();
-        $extension = $do->extension();
-        if (!$storageId) {
-            return;
-        }
-        $store = $services->get('Omeka\File\Store');
-        $thumbnailManager = $services->get('Omeka\File\ThumbnailManager');
-
-        $filename = $extension === null ? $storageId : $storageId . '.' . $extension;
-        if ($do->hasOriginal()) {
-            $store->delete('original/' . $filename);
-        }
-        if ($do->hasThumbnails()) {
-            foreach ($thumbnailManager->getTypes() as $type) {
-                $store->delete($type . '/' . $storageId . '.jpg');
-            }
-        }
-    }
-
-    protected function addAclRules(): void
-    {
         $services = $this->getServiceLocator();
         $acl = $services->get('Omeka\Acl');
 
@@ -126,5 +53,90 @@ class Module extends AbstractModule
                 [$entity, $adapter],
                 ['create', 'update', 'delete']
             );
+    }
+
+    protected function preInstall(): void
+    {
+        $services = $this->getServiceLocator();
+        $plugins = $services->get('ControllerPluginManager');
+        $translator = $services->get('MvcTranslator');
+
+        if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.85')) {
+            $message = new \Omeka\Stdlib\Message(
+                $translator->translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
+                'Common', '3.4.85'
+            );
+            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+        }
+    }
+
+    public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
+    {
+        $sharedEventManager->attach(
+            Api\Adapter\DigitalObjectAdapter::class,
+            'api.delete.pre',
+            [$this, 'deleteFiles']
+        );
+
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Item',
+            'view.show.sidebar',
+            [$this, 'displayInline']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Item',
+            'view.details',
+            [$this, 'displayInline']
+        );
+    }
+
+    public function displayInline($event): void
+    {
+        $view = $event->getTarget();
+        $item = $view->vars()->resource ?? $view->vars()->item ?? null;
+        if (!$item) {
+            return;
+        }
+
+        $dos = $view->digitalObjectInline($item);
+        if (empty($dos)) {
+            return;
+        }
+
+        echo $view->partial('common/digital-object-inline', [
+            'digitalObjects' => $dos,
+        ]);
+    }
+
+    public function deleteFiles($event): void
+    {
+        $request = $event->getParam('request');
+        $services = $this->getServiceLocator();
+        $api = $services->get('Omeka\ApiManager');
+        try {
+            $do = $api->read('digital_objects', $request->getId())->getContent();
+        } catch (\Exception $e) {
+            return;
+        }
+
+        $storageId = $do->storageId();
+        $extension = $do->extension();
+        if (!$storageId) {
+            return;
+        }
+
+        $store = $services->get('Omeka\File\Store');
+        $thumbnailManager = $services->get('Omeka\File\ThumbnailManager');
+
+        $filename = $extension === null ? $storageId : $storageId . '.' . $extension;
+        if ($do->hasOriginal()) {
+            $store->delete('original/' . $filename);
+        }
+
+        if ($do->hasThumbnails()) {
+            foreach ($thumbnailManager->getTypes() as $type) {
+                $store->delete($type . '/' . $storageId . '.jpg');
+            }
+        }
     }
 }

@@ -28,6 +28,11 @@ return [
             'resource:digitalobject' => DataType\DigitalObject::class,
         ],
     ],
+    'form_elements' => [
+        'invokables' => [
+            Form\ConfigForm::class => Form\ConfigForm::class,
+        ],
+    ],
     'column_types' => [
         'invokables' => [
             'digital_object_id' => ColumnType\Id::class,
@@ -203,16 +208,7 @@ return [
         'config' => [
             // RDF properties whose values (of type "resource") pointing to a
             // DigitalObject trigger inline rendering of that DigitalObject in
-            // the referencing item's display.
-            // - dcterms:hasFormat (default)
-            // - dcterms:relation (very generic)
-            // - crm:P138i_is_represented_by (CIDOC-CRM)
-            // - rico:hasInstantiation / rico:hasOrHadDigitalInstantiation (RiC-O)
-            // - edm:isShownBy / edm:hasView (Europeana Data Model)
-            // - pcdm:hasFile (Portland Common Data Model)
-            // - bibo:transcriptOf / premis:hasOriginal (derivative roles)
-            // - foaf:depiction (image only, person-leaning vocabulary)
-            // - schema:image / schema:associatedMedia / schema:encoding
+            // the referencing item's display. See readme for recommendations.
             'digitalobject_inline_properties' => [
                 'dcterms:hasFormat',
             ],
