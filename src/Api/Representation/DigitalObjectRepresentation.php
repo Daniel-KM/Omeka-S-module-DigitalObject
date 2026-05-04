@@ -96,6 +96,19 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return $this->resource->getAltText();
     }
 
+    public function altTextResolved(): ?string
+    {
+        $altText = $this->altText();
+        if (!strlen((string) $altText)) {
+            $settings = $this->getServiceLocator()->get('Omeka\Settings');
+            $fallbackProperty = $settings->get('media_alt_text_property');
+            if ($fallbackProperty) {
+                $altText = $this->value($fallbackProperty);
+            }
+        }
+        return $altText === null ? null : (string) $altText;
+    }
+
     public function originalUrl(): ?string
     {
         if (!$this->hasOriginal()) {
