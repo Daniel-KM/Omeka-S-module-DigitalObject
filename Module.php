@@ -38,6 +38,40 @@ class Module extends AbstractModule
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
     {
+        $sharedEventManager->attach(
+            Api\Adapter\DigitalObjectAdapter::class,
+            'api.delete.pre',
+            [$this, 'deleteFiles']
+        );
+    }
+
+    public function deleteFiles($event): void
+    {
+        $request = $event->getParam('request');
+        $services = $this->getServiceLocator();
+        $api = $services->get('Omeka\ApiManager');
+        try {
+            $do = $api->read('digital_objects', $request->getId())->getContent();
+        } catch (\Exception $e) {
+            return;
+        }
+        $storageId = $do->storageId();
+        $extension = $do->extension();
+        if (!$storageId) {
+            return;
+        }
+        $store = $services->get('Omeka\File\Store');
+        $thumbnailManager = $services->get('Omeka\File\ThumbnailManager');
+
+        $filename = $extension === null ? $storageId : $storageId . '.' . $extension;
+        if ($do->hasOriginal()) {
+            $store->delete('original/' . $filename);
+        }
+        if ($do->hasThumbnails()) {
+            foreach ($thumbnailManager->getTypes() as $type) {
+                $store->delete($type . '/' . $storageId . '.jpg');
+            }
+        }
     }
 
     protected function addAclRules(): void

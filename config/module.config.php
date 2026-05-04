@@ -21,6 +21,11 @@ return [
             'DigitalObject\Controller\Admin\DigitalObject' => Controller\Admin\DigitalObjectController::class,
         ],
     ],
+    'view_helpers' => [
+        'factories' => [
+            'digitalObjectInline' => Service\ViewHelper\DigitalObjectInlineFactory::class,
+        ],
+    ],
     'router' => [
         'routes' => [
             'admin' => [
