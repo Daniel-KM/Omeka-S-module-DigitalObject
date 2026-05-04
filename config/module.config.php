@@ -21,6 +21,11 @@ return [
             'DigitalObject\Controller\Admin\DigitalObject' => Controller\Admin\DigitalObjectController::class,
         ],
     ],
+    'data_types' => [
+        'invokables' => [
+            'resource' => DataType\Resource\All::class,
+        ],
+    ],
     'view_helpers' => [
         'factories' => [
             'digitalObjectInline' => Service\ViewHelper\DigitalObjectInlineFactory::class,

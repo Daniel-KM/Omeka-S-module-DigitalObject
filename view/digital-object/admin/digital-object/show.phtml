@@ -4,9 +4,15 @@ $escape = $this->plugin('escapeHtml');
 $digitalObject = $resource;
 $this->htmlElement('body')->appendAttribute('class', 'digital-object show');
 
+$linkedItems = $digitalObject->subjectValues(null, null, null, 'items');
+
 $sectionNavs = [
     'digital-object-metadata' => $translate('Metadata'),
 ];
+if ($linkedItems) {
+    $sectionNavs['linked-items'] = $translate('Linked items');
+}
+$sectionNavs['linked-resources'] = $translate('Linked resources');
 ?>
 
 <?php echo $this->pageTitle($digitalObject->displayTitle(), 1, $translate('Digital object')); ?>
@@ -43,6 +49,32 @@ $sectionNavs = [
     </dl>
     <?php endif; ?>
     <?php echo $digitalObject->displayValues(); ?>
+</div>
+
+<?php if ($linkedItems): ?>
+<div id="linked-items" class="section">
+    <?php foreach ($linkedItems as $term => $subjectValues): ?>
+    <h4><?php echo $escape($term); ?></h4>
+    <ul class="resource-list">
+        <?php foreach ($subjectValues as $sv): ?>
+        <?php $item = $sv['val']->resource(); ?>
+        <li class="resource item">
+            <?php echo $item->linkPretty(); ?>
+        </li>
+        <?php endforeach; ?>
+    </ul>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+<div id="linked-resources" class="section">
+    <?php if ($digitalObject->subjectValueTotalCount()): ?>
+    <?php echo $this->linkedResources($digitalObject); ?>
+    <?php else: ?>
+    <div class="no-resources">
+        <p><?php echo $translate('No resources link to this digital object.'); ?></p>
+    </div>
+    <?php endif; ?>
 </div>
 
 <div class="sidebar active">

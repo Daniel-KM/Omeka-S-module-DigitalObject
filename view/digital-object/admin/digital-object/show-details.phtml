@@ -1,11 +1,69 @@
 <?php
 $translate = $this->plugin('translate');
 $escape = $this->plugin('escapeHtml');
-$do = $resource;
 ?>
-<h3><?= $do->linkPretty('square', null, $linkTitle ? null : false) ?></h3>
-<dl>
-    <dt><?= $translate('Source') ?></dt><dd><?= $escape($do->source() ?? '—') ?></dd>
-    <dt><?= $translate('Media type') ?></dt><dd><?= $escape($do->mediaType() ?? '—') ?></dd>
-    <dt><?= $translate('Size') ?></dt><dd><?= $do->size() ? $escape(number_format($do->size())) . ' B' : '—' ?></dd>
-</dl>
+<div class="resource-details" data-resource-values="<?php echo $escape($values); ?>">
+
+    <?php if ($linkTitle): ?>
+    <h3 class="o-title"><?php echo $resource->link($resource->displayTitle()); ?></h3>
+    <?php else: ?>
+    <h3 class="o-title"><?php echo $escape($resource->displayTitle()); ?></h3>
+    <?php endif; ?>
+    <div class="o-description"><?php echo $escape($resource->displayDescription()); ?></div>
+
+    <?php echo $this->thumbnail($resource, 'square'); ?>
+
+    <div class="meta-group">
+        <h4><?php echo $translate('ID'); ?></h4>
+        <div class="value"><?php echo $escape($resource->id()); ?></div>
+    </div>
+
+    <?php if ($resourceClass = $resource->resourceClass()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Class'); ?></h4>
+        <div class="value"><?php echo $escape($resourceClass->label()); ?></div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($resourceTemplate = $resource->resourceTemplate()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Resource template'); ?></h4>
+        <div class="value"><?php echo $resourceTemplate->link($resourceTemplate->label()); ?></div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($resource->mediaType()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Media type'); ?></h4>
+        <div class="value"><?php echo $escape($resource->mediaType()); ?></div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (is_numeric($resource->size())): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Size'); ?></h4>
+        <div class="value"><?php echo sprintf($translate('%s bytes'), number_format($resource->size())); ?></div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($resource->source()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Source'); ?></h4>
+        <div class="value"><?php echo $escape($resource->source()); ?></div>
+    </div>
+    <?php endif; ?>
+
+    <div class="meta-group">
+        <h4><?php echo $translate('Created'); ?></h4>
+        <div class="value"><?php echo $escape($this->i18n()->dateFormat($resource->created())); ?></div>
+    </div>
+
+    <?php if ($owner = $resource->owner()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Owner'); ?></h4>
+        <div class="value"><?php echo $escape($owner->name()); ?></div>
+    </div>
+    <?php endif; ?>
+
+    <?php $this->trigger('view.details', ['entity' => $resource]); ?>
+</div>
