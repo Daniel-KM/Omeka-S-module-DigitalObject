@@ -24,6 +24,7 @@ return [
     'data_types' => [
         'invokables' => [
             'resource' => DataType\Resource\All::class,
+            'resource:digitalobject' => DataType\DigitalObject::class,
         ],
     ],
     'view_helpers' => [

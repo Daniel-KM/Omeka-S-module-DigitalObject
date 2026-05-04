@@ -28,17 +28,19 @@ $form->prepare();
 
 <fieldset id="digital-object-file" class="section" aria-labelledby="digital-object-file-label">
     <h3 id="digital-object-file-label"><?= $translate('File') ?></h3>
+    <ul class="messages">
+        <li class="notice"><?= $translate('The file is immutable. To replace it, delete this digital object and create a new one.') ?></li>
+    </ul>
     <?php if ($do->hasThumbnails()): ?>
         <img src="<?= $escape($do->thumbnailUrl('medium')) ?>" alt="">
     <?php endif; ?>
     <dl>
         <dt><?= $translate('Source') ?></dt><dd><?= $escape($do->source() ?? '—') ?></dd>
         <dt><?= $translate('Media type') ?></dt><dd><?= $escape($do->mediaType() ?? '—') ?></dd>
-        <dt><?= $translate('Size') ?></dt><dd><?= $do->size() ? $escape(number_format($do->size())) . ' B' : '—' ?></dd>
+        <dt><?= $translate('Size') ?></dt><dd><?= $do->size() ? sprintf($translate('%s bytes'), $escape(number_format($do->size()))) : '—' ?></dd>
         <dt><?= $translate('SHA-256') ?></dt><dd><?= $escape($do->sha256() ?? '—') ?></dd>
         <dt><?= $translate('Storage ID') ?></dt><dd><?= $escape($do->storageId() ?? '—') ?></dd>
     </dl>
-    <p class="field-description"><em><?= $translate('The file is immutable. To replace it, delete this digital object and create a new one.') ?></em></p>
 </fieldset>
 
 <div id="page-actions">
