@@ -1,0 +1,47 @@
+{
+    "name": "daniel-km/omeka-s-module-digital-object",
+    "type": "omeka-s-module",
+    "description": "Module for Omeka S: Add resource type DigitalObject, that is a file with metadata, referenceable by multiple items via standard properties, like a shared media.",
+    "keywords": [
+        "Omeka S",
+        "Omeka S module",
+        "curation",
+        "library",
+        "archives",
+        "museum"
+    ],
+    "license": "CECILL-2.1",
+    "homepage": "https://gitlab.com/Daniel-KM/Omeka-S-module-DigitalObject",
+    "authors": [
+        {
+            "name": "Daniel Berthereau",
+            "email": "Daniel.packagist@Berthereau.net"
+        }
+    ],
+    "support": {
+        "issues": "https://gitlab.com/Daniel-KM/Omeka-S-module-DigitalObject/-/issues",
+        "forum": "https://forum.omeka.org/"
+    },
+    "_require (not set until Omeka S merges PR #2432)": {
+        "omeka/omeka-s": "^4.0",
+        "daniel-km/omeka-s-module-common": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "DigitalObject\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DigitalObjectTest\\": "tests/DigitalObjectTest/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "7.4"
+        }
+    },
+    "extra": {
+        "installer-name": "DigitalObject"
+    }
+}
