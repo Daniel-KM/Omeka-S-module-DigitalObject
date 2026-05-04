@@ -71,13 +71,20 @@ class Module extends AbstractModule
             return;
         }
 
+        $escape = $view->plugin('escapeHtml');
+        $escapeAttr = $view->plugin('escapeHtmlAttr');
         $t = $services->get('MvcTranslator');
-        $html = '<p style="color:#c00"><strong>' . $t->translate('WARNING') . '</strong>: '; // @translate
-        $html .= sprintf(
-            $t->translate('%d digital objects still exist. Uninstallation is blocked. Convert them back to media via the module configuration page, or delete them individually through the admin interface before uninstalling. Removing them directly from the database would leave orphan files and derivatives on disk.'), // @translate
+
+        $html = '<p style="color:#c00"><strong>' . $escape($t->translate('WARNING')) . '</strong>: '; // @translate
+        $html .= $escape(sprintf(
+            $t->translate('%d digital objects still exist. Without conversion, files and derivatives will be left on disk.'), // @translate
             $count
-        );
+        ));
         $html .= '</p>';
+        $html .= '<label><input name="digitalobject-convert-to-media" type="checkbox" form="confirmform" value="1"> ';
+        $html .= $escape($t->translate('Convert digital objects back to media before uninstalling (synchronous, may be long).')); // @translate
+        $html .= '</label>';
+        $html .= '<input type="hidden" name="digitalobject-uninstall-count" form="confirmform" value="' . $escapeAttr((string) $count) . '">';
 
         echo $html;
     }
@@ -92,11 +99,32 @@ class Module extends AbstractModule
         }
 
         $translator = $services->get('MvcTranslator');
-        $message = sprintf(
-            $translator->translate('Cannot uninstall: %d digital objects still exist. Convert them back to media via the module configuration page, or delete them individually through the admin interface.'), // @translate
-            $count
+        $request = $services->get('Request');
+        $convert = (bool) $request->getPost('digitalobject-convert-to-media');
+        if (!$convert) {
+            $message = sprintf(
+                $translator->translate('Cannot uninstall: %d digital objects still exist. Tick the conversion checkbox in the uninstall confirmation, or convert/delete them beforehand.'), // @translate
+                $count
+            );
+            throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
+        }
+
+        $dispatcher = $services->get(\Omeka\Job\Dispatcher::class);
+        $strategy = $services->get(\Omeka\Job\DispatchStrategy\Synchronous::class);
+        $dispatcher->dispatch(
+            \DigitalObject\Job\DigitalObjectToMedia::class,
+            [],
+            $strategy
         );
-        throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
+
+        $remaining = (int) $connection->fetchOne('SELECT COUNT(id) FROM digital_object');
+        if ($remaining > 0) {
+            $message = sprintf(
+                $translator->translate('Conversion incomplete: %d digital objects could not be converted. Check job logs and retry.'), // @translate
+                $remaining
+            );
+            throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
+        }
     }
 
     protected function preInstall(): void
