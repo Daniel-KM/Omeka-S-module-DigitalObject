@@ -27,6 +27,41 @@ return [
             'resource:digitalobject' => DataType\DigitalObject::class,
         ],
     ],
+    'column_types' => [
+        'invokables' => [
+            'digital_object_id' => ColumnType\Id::class,
+            'digital_object_created' => ColumnType\Created::class,
+            'digital_object_modified' => ColumnType\Modified::class,
+            'digital_object_is_public' => ColumnType\IsPublic::class,
+            'digital_object_owner' => ColumnType\Owner::class,
+            'digital_object_resource_class' => ColumnType\ResourceClass::class,
+            'digital_object_resource_template' => ColumnType\ResourceTemplate::class,
+            'digital_object_media_type' => ColumnType\MediaType::class,
+            'digital_object_size' => ColumnType\Size::class,
+        ],
+        'factories' => [
+            'digital_object_value' => Service\ColumnType\ValueFactory::class,
+        ],
+    ],
+    'column_defaults' => [
+        'admin' => [
+            'digital_objects' => [
+                ['type' => 'digital_object_resource_class'],
+                ['type' => 'digital_object_media_type'],
+                ['type' => 'digital_object_size'],
+                ['type' => 'digital_object_owner'],
+                ['type' => 'digital_object_created'],
+            ],
+        ],
+    ],
+    'browse_defaults' => [
+        'admin' => [
+            'digital_objects' => [
+                'sort_by' => 'id',
+                'sort_order' => 'desc',
+            ],
+        ],
+    ],
     'view_helpers' => [
         'factories' => [
             'digitalObjectInline' => Service\ViewHelper\DigitalObjectInlineFactory::class,
