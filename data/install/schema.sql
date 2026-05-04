@@ -1,0 +1,19 @@
+CREATE TABLE digital_object (
+    id INT NOT NULL,
+    data LONGTEXT DEFAULT NULL COMMENT '(DC2Type:json_array)',
+    source LONGTEXT DEFAULT NULL,
+    media_type VARCHAR(190) DEFAULT NULL,
+    storage_id VARCHAR(190) DEFAULT NULL,
+    extension VARCHAR(190) DEFAULT NULL,
+    sha256 CHAR(64) DEFAULT NULL,
+    size BIGINT DEFAULT NULL,
+    has_original TINYINT(1) NOT NULL DEFAULT '0',
+    has_thumbnails TINYINT(1) NOT NULL DEFAULT '0',
+    lang VARCHAR(190) DEFAULT NULL,
+    alt_text LONGTEXT DEFAULT NULL,
+    UNIQUE INDEX UNIQ_DO_STORAGE_ID (storage_id),
+    INDEX IDX_DO_SHA256 (sha256),
+    INDEX IDX_DO_MEDIA_TYPE (media_type),
+    PRIMARY KEY (id),
+    CONSTRAINT FK_DO_ID FOREIGN KEY (id) REFERENCES resource (id) ON DELETE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE=InnoDB;
