@@ -63,6 +63,9 @@ return [
         ],
     ],
     'view_helpers' => [
+        'invokables' => [
+            'thumbnail' => View\Helper\Thumbnail::class,
+        ],
         'factories' => [
             'digitalObjectInline' => Service\ViewHelper\DigitalObjectInlineFactory::class,
         ],

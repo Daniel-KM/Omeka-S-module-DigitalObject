@@ -132,6 +132,30 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return null;
     }
 
+    /**
+     * Compat with MediaRepresentation: a DigitalObject has no parent item.
+     */
+    public function item()
+    {
+        return null;
+    }
+
+    /**
+     * Compat with MediaRepresentation: stable ingester name for the file.
+     */
+    public function ingester(): string
+    {
+        return 'digital_object';
+    }
+
+    /**
+     * Compat with MediaRepresentation: default file renderer.
+     */
+    public function renderer(): string
+    {
+        return 'file';
+    }
+
     public function valueRepresentation()
     {
         $representation = parent::valueRepresentation();
