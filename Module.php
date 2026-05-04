@@ -10,6 +10,7 @@ if (!class_exists('Common\TraitModule', false)) {
 
 use Common\TraitModule;
 use Laminas\EventManager\SharedEventManagerInterface;
+use Laminas\Mvc\Controller\AbstractController;
 use Laminas\Mvc\MvcEvent;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Module\AbstractModule;
@@ -111,6 +112,41 @@ class Module extends AbstractModule
             );
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
+    }
+
+    public function handleConfigForm(AbstractController $controller)
+    {
+        $ok = $this->handleConfigFormAuto($controller);
+        if (!$ok) {
+            return false;
+        }
+        $post = $controller->getRequest()->getPost()->toArray();
+        $convert = $post['convert_media'] ?? [];
+        if (empty($convert['process'])) {
+            return true;
+        }
+        $services = $this->getServiceLocator();
+        $dispatcher = $services->get(\Omeka\Job\Dispatcher::class);
+        $job = $dispatcher->dispatch(\DigitalObject\Job\MediaToDigitalObject::class, [
+            'ingester' => $convert['ingester'] ?? '',
+            'media_types' => $convert['media_types'] ?? '',
+            'only_with_file' => !empty($convert['only_with_file']),
+            'query' => $convert['query'] ?? '',
+            'property' => $convert['property'] ?? 'dcterms:hasFormat',
+            'dry_run' => !empty($convert['dry_run']),
+        ]);
+        $url = $controller->url();
+        $messenger = $controller->messenger();
+        $messenger->addSuccess(sprintf(
+            'Convert media to digital objects job launched (job #%d). %s',
+            $job->getId(),
+            sprintf(
+                '<a href="%s">%s</a>',
+                $url->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]),
+                'View job logs'
+            )
+        ));
+        return true;
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
