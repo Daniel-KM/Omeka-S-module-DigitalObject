@@ -142,6 +142,52 @@ class Module extends AbstractModule
         }
     }
 
+    protected function postInstall(): void
+    {
+        $this->setDigitalObjectResourcePageBlocks();
+    }
+
+    /**
+     * Add the default digital object resource page blocks to every site whose
+     * theme already has an explicit resource page blocks configuration (which
+     * otherwise takes precedence over the module default and would leave the
+     * digital object page empty). Sites without such configuration already fall
+     * back to the module default.
+     */
+    protected function setDigitalObjectResourcePageBlocks(): void
+    {
+        $services = $this->getServiceLocator();
+        $connection = $services->get('Omeka\Connection');
+        $blocks = $services->get('Config')['resource_page_blocks_default']['digital_objects']['main']
+            ?? ['digital_object_render', 'values', 'linkedResources'];
+
+        $sites = $connection->fetchAllAssociative('SELECT id, theme FROM site');
+        foreach ($sites as $site) {
+            $siteId = (int) $site['id'];
+            $key = 'theme_settings_' . $site['theme'];
+            $value = $connection->fetchOne(
+                'SELECT value FROM site_setting WHERE site_id = :site AND id = :id',
+                ['site' => $siteId, 'id' => $key]
+            );
+            if ($value === false) {
+                continue;
+            }
+            $settings = json_decode((string) $value, true);
+            // Only when the theme is configured but lacks digital objects.
+            if (!is_array($settings)
+                || !isset($settings['resource_page_blocks'])
+                || isset($settings['resource_page_blocks']['digital_objects'])
+            ) {
+                continue;
+            }
+            $settings['resource_page_blocks']['digital_objects'] = ['main' => $blocks];
+            $connection->executeStatement(
+                'UPDATE site_setting SET value = :value WHERE site_id = :site AND id = :id',
+                ['value' => json_encode($settings), 'site' => $siteId, 'id' => $key]
+            );
+        }
+    }
+
     public function handleConfigForm(AbstractController $controller)
     {
         $ok = $this->handleConfigFormAuto($controller);
