@@ -1,0 +1,44 @@
+<?php
+$translate = $this->plugin('translate');
+$escape = $this->plugin('escapeHtml');
+$this->htmlElement('body')->appendAttribute('class', 'digital-objects browse');
+?>
+<?php $this->headLink()->appendStylesheet($this->assetUrl('css/digital-object.css', 'DigitalObject')); ?>
+
+<?= $this->pageTitle($translate('Digital objects')) ?>
+
+<div id="page-actions">
+    <a href="<?= $escape($this->url('admin/digital-object/default', ['action' => 'add'])) ?>" class="button"><?= $translate('Add new digital object') ?></a>
+</div>
+
+<?php if ($resources): ?>
+<table class="tablesaw batch-edit" data-tablesaw-mode="stack">
+    <thead>
+        <tr>
+            <th><?= $translate('Title') ?></th>
+            <th><?= $translate('Type') ?></th>
+            <th><?= $translate('Size') ?></th>
+            <th><?= $translate('Modified') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($resources as $resource): ?>
+        <tr>
+            <td>
+                <?= $resource->linkPretty(null, 'edit') ?>
+                <ul class="actions">
+                    <li><a href="<?= $escape($resource->url('edit')) ?>" class="o-icon-edit" title="<?= $translate('Edit') ?>"></a></li>
+                    <li><a href="<?= $escape($resource->url('show')) ?>" class="o-icon-external" title="<?= $translate('Show') ?>"></a></li>
+                </ul>
+            </td>
+            <td><?= $escape($resource->mediaType() ?: '—') ?></td>
+            <td><?= $resource->size() ? $escape(number_format($resource->size())) : '—' ?></td>
+            <td><?= $resource->modified() ? $escape($this->i18n()->dateFormat($resource->modified(), 'medium', 'short')) : '—' ?></td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+<?= $this->pagination() ?>
+<?php else: ?>
+    <p><?= $translate('No digital objects yet.') ?></p>
+<?php endif; ?>

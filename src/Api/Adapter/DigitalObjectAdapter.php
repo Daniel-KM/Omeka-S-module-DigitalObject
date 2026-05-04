@@ -4,6 +4,10 @@ namespace DigitalObject\Api\Adapter;
 
 use Doctrine\ORM\QueryBuilder;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
+use Omeka\Api\Request;
+use Omeka\Entity\EntityInterface;
+use Omeka\File\TempFile;
+use Omeka\Stdlib\ErrorStore;
 
 class DigitalObjectAdapter extends AbstractResourceEntityAdapter
 {
@@ -65,5 +69,96 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
         if (!empty($query['has_original'])) {
             $qb->andWhere($expr->eq('omeka_root.hasOriginal', $this->createNamedParameter($qb, (bool) $query['has_original'])));
         }
+    }
+
+    public function hydrate(Request $request, EntityInterface $entity, ErrorStore $errorStore)
+    {
+        $data = $request->getContent();
+
+        if (Request::CREATE === $request->getOperation()) {
+            if (isset($data['data'])) {
+                $entity->setData($data['data']);
+            }
+            if (isset($data['o:source'])) {
+                $entity->setSource($data['o:source']);
+            }
+        }
+
+        parent::hydrate($request, $entity, $errorStore);
+
+        if ($this->shouldHydrate($request, 'o:lang')) {
+            $entity->setLang($request->getValue('o:lang', null));
+        }
+        if ($this->shouldHydrate($request, 'o:alt_text')) {
+            $entity->setAltText($request->getValue('o:alt_text'));
+        }
+
+        $this->hydrateFile($request, $entity, $errorStore);
+    }
+
+    protected function hydrateFile(Request $request, EntityInterface $entity, ErrorStore $errorStore): void
+    {
+        $fileData = $request->getFileData();
+        $content = $request->getContent();
+
+        $services = $this->getServiceLocator();
+        $uploader = $services->get('Omeka\File\Uploader');
+
+        $tempFile = null;
+        if (isset($fileData['file'])) {
+            $upload = is_array($fileData['file']) && isset($fileData['file']['tmp_name'])
+                ? $fileData['file']
+                : (isset($fileData['file'][0]) ? $fileData['file'][0] : null);
+            if ($upload && !empty($upload['tmp_name'])) {
+                $tempFile = $uploader->upload($upload, $errorStore);
+                if ($tempFile) {
+                    $tempFile->setSourceName($upload['name']);
+                    if (empty($content['o:source'])) {
+                        $entity->setSource($upload['name']);
+                    }
+                }
+            }
+        } elseif (!empty($content['ingest_filename'])) {
+            $sideload = $services->get('Omeka\File\TempFileFactory')->build();
+            $sourcePath = $content['ingest_filename'];
+            if (!is_readable($sourcePath)) {
+                $errorStore->addError('ingest_filename', sprintf('File "%s" is not readable.', $sourcePath));
+                return;
+            }
+            $sideload->setTempPath($sourcePath);
+            $sideload->setSourceName(basename($sourcePath));
+            if (empty($content['o:source'])) {
+                $entity->setSource(basename($sourcePath));
+            }
+            $tempFile = $sideload;
+        }
+
+        if (!$tempFile) {
+            return;
+        }
+
+        $this->applyTempFile($tempFile, $entity);
+    }
+
+    protected function applyTempFile(TempFile $tempFile, EntityInterface $entity): void
+    {
+        $prefix = $this->getServiceLocator()
+            ->get('Config')['digitalobject']['config']['digitalobject_storage_prefix'] ?? '';
+        $storageId = $prefix . $tempFile->getStorageId();
+        $tempFile->setStorageId($storageId);
+
+        $entity->setStorageId($tempFile->getStorageId());
+        $entity->setExtension($tempFile->getExtension());
+        $entity->setMediaType($tempFile->getMediaType());
+        $entity->setSha256($tempFile->getSha256());
+        $entity->setSize($tempFile->getSize());
+
+        $tempFile->storeOriginal();
+        $entity->setHasOriginal(true);
+
+        $hasThumbnails = $tempFile->storeThumbnails();
+        $entity->setHasThumbnails((bool) $hasThumbnails);
+
+        $tempFile->delete();
     }
 }

@@ -1,0 +1,4 @@
+.digital-object-preview { margin: 1em 0; max-width: 600px; }
+.digital-object-preview img { max-width: 100%; height: auto; display: block; }
+.digital-object-meta dt { font-weight: 600; margin-top: 0.5em; }
+.digital-object-meta dd { margin: 0 0 0.5em 1em; }

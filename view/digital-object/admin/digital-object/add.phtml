@@ -1,0 +1,51 @@
+<?php
+$translate = $this->plugin('translate');
+$escape = $this->plugin('escapeHtml');
+$formElement = $this->plugin('formElement');
+$this->headScript()->appendFile($this->assetUrl('vendor/sortablejs/Sortable.min.js', 'Omeka'));
+$this->headScript()->appendFile($this->assetUrl('js/resource-form.js', 'Omeka'));
+$form->setAttribute('action', $this->url('admin/digital-object/default', ['action' => 'add']));
+$form->setAttribute('enctype', 'multipart/form-data');
+$form->prepare();
+?>
+<?= $this->pageTitle($translate('New digital object'), 1, $translate('Digital objects')) ?>
+
+<?= $this->form()->openTag($form) ?>
+
+<?= $this->sectionNav([
+    'resource-values' => $translate('Values'),
+    'digital-object-file' => $translate('File'),
+    'advanced-settings' => $translate('Advanced'),
+]) ?>
+
+<?= $this->partial('common/resource-fields.phtml', [
+    'form' => $form,
+    'resource' => null,
+    'action' => 'add',
+    'postedValues' => $postedValues ?? null,
+]) ?>
+
+<fieldset id="digital-object-file" class="section" aria-labelledby="digital-object-file-label">
+    <h3 id="digital-object-file-label"><?= $translate('File') ?></h3>
+    <div class="field">
+        <div class="field-meta">
+            <label for="file"><?= $translate('Upload file') ?></label>
+            <div class="field-description"><?= $this->uploadLimit() ?></div>
+        </div>
+        <div class="inputs">
+            <input type="file" name="file" id="file" required>
+        </div>
+    </div>
+</fieldset>
+
+<div id="page-actions">
+    <input type="hidden" name="o:is_public" value="1">
+    <?= $this->cancelButton() ?>
+    <button type="submit"><?= $translate('Add') ?></button>
+</div>
+
+<?= $formElement($form->get('csrf')) ?>
+
+<?= $this->form()->closeTag() ?>
+
+<?= $this->partial('common/resource-form-templates.phtml') ?>

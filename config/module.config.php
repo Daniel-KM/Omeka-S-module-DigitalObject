@@ -17,8 +17,8 @@ return [
         ],
     ],
     'controllers' => [
-        'factories' => [
-            'DigitalObject\Controller\Admin\DigitalObject' => Service\Controller\Admin\DigitalObjectControllerFactory::class,
+        'invokables' => [
+            'DigitalObject\Controller\Admin\DigitalObject' => Controller\Admin\DigitalObjectController::class,
         ],
     ],
     'router' => [
@@ -26,22 +26,36 @@ return [
             'admin' => [
                 'child_routes' => [
                     'digital-object' => [
-                        'type' => \Laminas\Router\Http\Segment::class,
+                        'type' => \Laminas\Router\Http\Literal::class,
                         'options' => [
-                            'route' => '/digital-object[/:action]',
+                            'route' => '/digital-object',
                             'defaults' => [
                                 '__NAMESPACE__' => 'DigitalObject\Controller\Admin',
-                                'controller' => 'DigitalObject',
+                                '__ADMIN__' => true,
+                                'controller' => 'DigitalObject\Controller\Admin\DigitalObject',
                                 'action' => 'browse',
                             ],
                         ],
                         'may_terminate' => true,
                         'child_routes' => [
+                            'default' => [
+                                'type' => \Laminas\Router\Http\Segment::class,
+                                'options' => [
+                                    'route' => '/:action',
+                                    'constraints' => [
+                                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                    ],
+                                    'defaults' => [
+                                        'action' => 'browse',
+                                    ],
+                                ],
+                            ],
                             'id' => [
                                 'type' => \Laminas\Router\Http\Segment::class,
                                 'options' => [
                                     'route' => '/:id[/:action]',
                                     'constraints' => [
+                                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                                         'id' => '\d+',
                                     ],
                                     'defaults' => [
@@ -62,6 +76,10 @@ return [
                 'route' => 'admin/digital-object',
                 'resource' => 'DigitalObject\Controller\Admin\DigitalObject',
                 'pages' => [
+                    [
+                        'route' => 'admin/digital-object/default',
+                        'visible' => false,
+                    ],
                     [
                         'route' => 'admin/digital-object/id',
                         'visible' => false,
@@ -87,7 +105,21 @@ return [
     ],
     'digitalobject' => [
         'config' => [
-            'digitalobject_inline_properties' => ['foaf:depiction'],
+            // RDF properties whose values (of type "resource") pointing to a
+            // DigitalObject trigger inline rendering of that DigitalObject in
+            // the referencing item's display.
+            // - dcterms:hasFormat (default)
+            // - dcterms:relation (very generic)
+            // - crm:P138i_is_represented_by (CIDOC-CRM)
+            // - rico:hasInstantiation / rico:hasOrHadDigitalInstantiation (RiC-O)
+            // - edm:isShownBy / edm:hasView (Europeana Data Model)
+            // - pcdm:hasFile (Portland Common Data Model)
+            // - bibo:transcriptOf / premis:hasOriginal (derivative roles)
+            // - foaf:depiction (image only, person-leaning vocabulary)
+            // - schema:image / schema:associatedMedia / schema:encoding
+            'digitalobject_inline_properties' => [
+                'dcterms:hasFormat',
+            ],
             'digitalobject_storage_prefix' => 'do_',
         ],
     ],

@@ -1,0 +1,125 @@
+<?php
+$translate = $this->plugin('translate');
+$escape = $this->plugin('escapeHtml');
+$digitalObject = $resource;
+$this->htmlElement('body')->appendAttribute('class', 'digital-object show');
+
+$sectionNavs = [
+    'digital-object-metadata' => $translate('Metadata'),
+];
+?>
+
+<?php echo $this->pageTitle($digitalObject->displayTitle(), 1, $translate('Digital object')); ?>
+
+<div id="page-actions">
+    <?php $this->trigger('view.show.page_actions', ['resource' => $digitalObject]); ?>
+    <?php if ($digitalObject->userIsAllowed('update')): ?>
+    <?php echo $digitalObject->link($translate('Edit digital object'), 'edit', ['class' => 'button']); ?>
+    <?php endif; ?>
+</div>
+
+<?php echo $this->sectionNav($sectionNavs, 'view.show.section_nav', $digitalObject); ?>
+
+<div id="digital-object-metadata" class="active section">
+    <?php if ($digitalObject->hasThumbnails()): ?>
+    <div class="digital-object-preview">
+        <img src="<?php echo $escape($digitalObject->thumbnailUrl('large') ?: $digitalObject->thumbnailUrl('medium')); ?>" alt="<?php echo $escape($digitalObject->altText() ?? ''); ?>">
+    </div>
+    <?php endif; ?>
+    <?php if ($digitalObject->resourceClass()): ?>
+    <dl class="resource-class">
+        <div class="meta-group">
+            <dt><?php echo $translate('Class'); ?></dt>
+            <dd class="value"><?php echo $digitalObject->resourceClass()->label(); ?></dd>
+        </div>
+    </dl>
+    <?php endif; ?>
+    <?php if ($digitalObject->resourceTemplate()): ?>
+    <dl>
+        <div class="meta-group">
+            <dt><?php echo $translate('Resource template'); ?></dt>
+            <dd class="value"><?php echo $escape($digitalObject->resourceTemplate()->label()); ?></dd>
+        </div>
+    </dl>
+    <?php endif; ?>
+    <?php echo $digitalObject->displayValues(); ?>
+</div>
+
+<div class="sidebar active">
+    <div class="meta-group">
+        <h4><?php echo $translate('ID'); ?></h4>
+        <div class="value"><?php echo $escape($digitalObject->id()); ?></div>
+    </div>
+    <div class="meta-group">
+        <h4><?php echo $translate('Visibility'); ?></h4>
+        <div class="value"><?php echo ($digitalObject->isPublic()) ? $translate('Public') : $translate('Private'); ?></div>
+    </div>
+    <div class="meta-group">
+        <h4><?php echo $translate('Created'); ?></h4>
+        <div class="value"><?php echo $escape($this->i18n()->dateFormat($digitalObject->created())); ?></div>
+    </div>
+    <?php if ($digitalObject->modified()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Modified'); ?></h4>
+        <div class="value"><?php echo $escape($this->i18n()->dateFormat($digitalObject->modified())); ?></div>
+    </div>
+    <?php endif; ?>
+    <?php if ($owner = $digitalObject->owner()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Owner'); ?></h4>
+        <div class="value"><?php echo $escape($owner->name()); ?></div>
+    </div>
+    <?php endif; ?>
+    <?php if ($digitalObject->lang()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Language'); ?></h4>
+        <div class="value"><?php echo $escape($digitalObject->lang()); ?></div>
+    </div>
+    <?php endif; ?>
+    <?php if ($digitalObject->mediaType()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Media type'); ?></h4>
+        <div class="value"><?php echo $escape($digitalObject->mediaType()); ?></div>
+    </div>
+    <?php endif; ?>
+    <?php if (is_numeric($digitalObject->size())): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Size'); ?></h4>
+        <div class="value"><?php echo sprintf($translate('%s bytes'), number_format($digitalObject->size())); ?></div>
+    </div>
+    <?php endif; ?>
+    <?php if ($digitalObject->source()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Source'); ?></h4>
+        <div class="value"><?php echo $escape($digitalObject->source()); ?></div>
+    </div>
+    <?php endif; ?>
+    <?php if ($digitalObject->storageId()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('Storage ID'); ?></h4>
+        <div class="value"><?php echo $escape($digitalObject->storageId()); ?></div>
+    </div>
+    <?php endif; ?>
+    <?php if ($digitalObject->sha256()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('SHA-256'); ?></h4>
+        <div class="value"><?php echo $escape($digitalObject->sha256()); ?></div>
+    </div>
+    <?php endif; ?>
+    <?php if ($digitalObject->hasThumbnails() || $digitalObject->hasOriginal()): ?>
+    <div class="meta-group">
+        <h4><?php echo $translate('File Derivatives'); ?></h4>
+        <?php if ($digitalObject->hasOriginal()): ?>
+            <div class="value"><a href="<?php echo $escape($digitalObject->originalUrl()); ?>"><?php echo $translate('original'); ?></a></div>
+        <?php endif; ?>
+        <?php if ($digitalObject->hasThumbnails()): ?>
+            <div class="value"><a href="<?php echo $escape($digitalObject->thumbnailUrl('large')); ?>"><?php echo $translate('large'); ?></a></div>
+            <div class="value"><a href="<?php echo $escape($digitalObject->thumbnailUrl('medium')); ?>"><?php echo $translate('medium'); ?></a></div>
+            <div class="value"><a href="<?php echo $escape($digitalObject->thumbnailUrl('square')); ?>"><?php echo $translate('square'); ?></a></div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+    <?php $this->trigger('view.show.sidebar'); ?>
+</div>
+
+<?php $this->trigger('view.show.after'); ?>

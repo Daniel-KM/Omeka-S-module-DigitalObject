@@ -1,0 +1,11 @@
+<?php
+$translate = $this->plugin('translate');
+$escape = $this->plugin('escapeHtml');
+$do = $resource;
+?>
+<h3><?= $do->linkPretty('square', null, $linkTitle ? null : false) ?></h3>
+<dl>
+    <dt><?= $translate('Source') ?></dt><dd><?= $escape($do->source() ?? '—') ?></dd>
+    <dt><?= $translate('Media type') ?></dt><dd><?= $escape($do->mediaType() ?? '—') ?></dd>
+    <dt><?= $translate('Size') ?></dt><dd><?= $do->size() ? $escape(number_format($do->size())) . ' B' : '—' ?></dd>
+</dl>

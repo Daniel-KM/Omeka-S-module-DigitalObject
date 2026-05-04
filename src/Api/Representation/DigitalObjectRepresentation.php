@@ -132,6 +132,15 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return null;
     }
 
+    public function thumbnailDisplayUrl($type)
+    {
+        $thumbnail = $this->thumbnail();
+        if ($thumbnail) {
+            return $thumbnail->assetUrl();
+        }
+        return $this->thumbnailUrl($type);
+    }
+
     public function adminUrl($action = null, $canonical = false)
     {
         $url = $this->getViewHelper('Url');

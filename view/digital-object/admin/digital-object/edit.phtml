@@ -1,0 +1,54 @@
+<?php
+$translate = $this->plugin('translate');
+$escape = $this->plugin('escapeHtml');
+$formElement = $this->plugin('formElement');
+$this->headScript()->appendFile($this->assetUrl('vendor/sortablejs/Sortable.min.js', 'Omeka'));
+$this->headScript()->appendFile($this->assetUrl('js/resource-form.js', 'Omeka'));
+$do = $resource;
+$form->setAttribute('action', $this->url('admin/digital-object/id', ['id' => $do->id(), 'action' => 'edit']));
+$form->setAttribute('enctype', 'multipart/form-data');
+$form->prepare();
+?>
+<?= $this->pageTitle($do->displayTitle(), 1, $translate('Edit digital object')) ?>
+
+<?= $this->form()->openTag($form) ?>
+
+<?= $this->sectionNav([
+    'resource-values' => $translate('Values'),
+    'digital-object-file' => $translate('File'),
+    'advanced-settings' => $translate('Advanced'),
+]) ?>
+
+<?= $this->partial('common/resource-fields.phtml', [
+    'form' => $form,
+    'resource' => $do,
+    'action' => 'edit',
+    'postedValues' => $postedValues ?? null,
+]) ?>
+
+<fieldset id="digital-object-file" class="section" aria-labelledby="digital-object-file-label">
+    <h3 id="digital-object-file-label"><?= $translate('File') ?></h3>
+    <?php if ($do->hasThumbnails()): ?>
+        <img src="<?= $escape($do->thumbnailUrl('medium')) ?>" alt="">
+    <?php endif; ?>
+    <dl>
+        <dt><?= $translate('Source') ?></dt><dd><?= $escape($do->source() ?? '—') ?></dd>
+        <dt><?= $translate('Media type') ?></dt><dd><?= $escape($do->mediaType() ?? '—') ?></dd>
+        <dt><?= $translate('Size') ?></dt><dd><?= $do->size() ? $escape(number_format($do->size())) . ' B' : '—' ?></dd>
+        <dt><?= $translate('SHA-256') ?></dt><dd><?= $escape($do->sha256() ?? '—') ?></dd>
+        <dt><?= $translate('Storage ID') ?></dt><dd><?= $escape($do->storageId() ?? '—') ?></dd>
+    </dl>
+    <p class="field-description"><em><?= $translate('The file is immutable. To replace it, delete this digital object and create a new one.') ?></em></p>
+</fieldset>
+
+<div id="page-actions">
+    <input type="hidden" name="o:is_public" value="<?= $do->isPublic() ? 1 : 0 ?>">
+    <?= $this->cancelButton() ?>
+    <button type="submit"><?= $translate('Save') ?></button>
+</div>
+
+<?= $formElement($form->get('csrf')) ?>
+
+<?= $this->form()->closeTag() ?>
+
+<?= $this->partial('common/resource-form-templates.phtml') ?>
