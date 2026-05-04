@@ -2,9 +2,10 @@
 $translate = $this->plugin('translate');
 $escape = $this->plugin('escapeHtml');
 $this->htmlElement('body')->appendAttribute('class', 'digital-object browse');
+$this->headLink()->appendStylesheet($this->assetUrl('css/digital-object.css', 'DigitalObject'));
 ?>
 
-<?php echo $this->pageTitle($translate('Digital objects')); ?>
+<?= $this->pageTitle('', 1, $translate('Digital objects')) ?>
 
 <div id="page-actions">
     <?php if ($this->userIsAllowed('DigitalObject\Api\Adapter\DigitalObjectAdapter', 'create')): ?>

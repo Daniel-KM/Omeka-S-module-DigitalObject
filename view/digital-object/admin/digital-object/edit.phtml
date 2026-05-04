@@ -2,6 +2,8 @@
 $translate = $this->plugin('translate');
 $escape = $this->plugin('escapeHtml');
 $formElement = $this->plugin('formElement');
+$this->htmlElement('body')->appendAttribute('class', 'digital-object edit');
+$this->headLink()->appendStylesheet($this->assetUrl('css/digital-object.css', 'DigitalObject'));
 $this->headScript()->appendFile($this->assetUrl('vendor/sortablejs/Sortable.min.js', 'Omeka'));
 $this->headScript()->appendFile($this->assetUrl('js/resource-form.js', 'Omeka'));
 $do = $resource;
@@ -9,7 +11,7 @@ $form->setAttribute('action', $this->url('admin/digital-object/id', ['id' => $do
 $form->setAttribute('enctype', 'multipart/form-data');
 $form->prepare();
 ?>
-<?= $this->pageTitle($do->displayTitle(), 1, $translate('Edit digital object')) ?>
+<?= $this->pageTitle($do->displayTitle(), 1, $translate('Digital object')) ?>
 
 <?= $this->form()->openTag($form) ?>
 

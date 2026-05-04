@@ -40,7 +40,7 @@ endif;
 
 if (in_array($dataType, ['resource', 'resource:digitalobject'])):
     echo $this->hyperlink($translate('Digital objects'), '#digital-object-resource-select', [
-        'class' => 'o-icon- fa-file-image button resource-select',
+        'class' => 'o-icon- fa-file button resource-select',
         'data-sidebar-content-url' => $this->url('admin/digital-object/default', ['action' => 'sidebar-select'], false),
     ]);
 endif;

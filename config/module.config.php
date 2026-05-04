@@ -119,6 +119,7 @@ return [
         'AdminResource' => [
             [
                 'label' => 'Digital objects', // @translate
+                'class' => 'o-icon- fa-file',
                 'route' => 'admin/digital-object',
                 'resource' => 'DigitalObject\Controller\Admin\DigitalObject',
                 'pages' => [

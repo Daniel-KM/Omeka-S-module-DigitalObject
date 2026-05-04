@@ -3,6 +3,7 @@ $translate = $this->plugin('translate');
 $escape = $this->plugin('escapeHtml');
 $digitalObject = $resource;
 $this->htmlElement('body')->appendAttribute('class', 'digital-object show');
+$this->headLink()->appendStylesheet($this->assetUrl('css/digital-object.css', 'DigitalObject'));
 
 $linkedItems = $digitalObject->subjectValues(null, null, null, 'items');
 
