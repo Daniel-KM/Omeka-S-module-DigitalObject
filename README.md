@@ -47,13 +47,38 @@ vendor/bin/phpunit -c modules/DigitalObject/phpunit.xml --testdox
 Usage
 -----
 
-To attach a digital object to a resource, use the data type "resource:digital-object".
+To attach a digital object to a resource, use the data type `resource:digitalobject`
+(or the generic `resource` data type).
+
+The link is expressed as a standard RDF Value, using any property the
+admin chooses. The setting `digitalobject_inline_properties` lists which
+properties trigger inline rendering of the referenced digital objects in
+the item display. Standard candidates, by use case:
+
+| Vocabulary    | Property                                                      | Use case                                                |
+|---------------|------------------------------------------------------------- -|---------------------------------------------------------|
+| Dublin Core   | `dcterms:hasFormat` (default) / `dcterms:relation`            | Generic, neutral on media type and described entity     |
+| BIBFRAME      | `bf:hasInstance` / `bf:hasItem` / `bf:electronicLocator`      | Libraries (Library of Congress, MARC successor)         |
+| RDA Registry  | `rdaw:hasManifestationOfWork` / `rdam:hasItem`                | Libraries (Resource Description and Access)             |
+| CIDOC-CRM     | `crm:P138i_is_represented_by`                                 | Museum collections, strict ontology                     |
+| RiC-O         | `rico:hasInstantiation` / `rico:hasOrHadDigitalInstantiation` | Archives (Records in Contexts)                          |
+| EDM           | `edm:isShownBy` / `edm:hasView`                               | Europeana / patrimoine aggregator                       |
+| PCDM          | `pcdm:hasFile`                                                | Fedora / Islandora / Hydra                              |
+| BIBO / PREMIS | `bibo:transcriptOf` / `premis:hasOriginal`                    | Derivative roles (OCR, transcription, restored version) |
+| FOAF          | `foaf:depiction`                                              | Image only (person-leaning vocabulary)                  |
+| schema.org    | `schema:image` / `schema:associatedMedia` / `schema:encoding` | Web-friendly, SEO                                       |
 
 
 TODO
 ----
 
 - [ ] Replace media?
+- [ ] Public site page for digital objects (site controller + route
+  `/s/<slug>/digital-object/<id>` + template `site/digital-object/show.phtml`)
+  and a `DigitalObjectRender` resource page block compatible with the
+  `digital_objects` resource name (equivalent to core `MediaRender` on the
+  media public page). Currently digital objects are only accessible inline
+  through their referencing items.
 
 
 Warning
