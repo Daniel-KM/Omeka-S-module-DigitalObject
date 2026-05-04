@@ -1,0 +1,10 @@
+<?php
+$digitalObjects = $this->digitalObjectInline($resource);
+?>
+<?php if ($digitalObjects): ?>
+<div class="digital-objects-embeds">
+    <?php foreach ($digitalObjects as $do): ?>
+    <?= $do->render() ?>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>

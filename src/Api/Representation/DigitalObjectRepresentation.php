@@ -152,6 +152,33 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return $this->thumbnailUrl($type);
     }
 
+    public function render(array $options = [])
+    {
+        $mediaType = (string) $this->mediaType();
+        $primary = strtok($mediaType, '/');
+        $title = $this->displayTitle();
+        $alt = $this->altText() ?: $title;
+        $view = $this->getServiceLocator()->get('ViewRenderer');
+        $escape = $view->plugin('escapeHtml');
+        $url = $this->originalUrl();
+
+        if ($primary === 'image' && $this->hasThumbnails()) {
+            return sprintf(
+                '<a href="%s"><img src="%s" alt="%s"></a>',
+                $escape($url),
+                $escape($this->thumbnailUrl('large') ?: $this->thumbnailUrl('medium')),
+                $escape($alt)
+            );
+        }
+        if ($primary === 'audio') {
+            return sprintf('<audio controls src="%s"></audio>', $escape($url));
+        }
+        if ($primary === 'video') {
+            return sprintf('<video controls src="%s"></video>', $escape($url));
+        }
+        return sprintf('<a href="%s">%s</a>', $escape($url), $escape($title));
+    }
+
     public function adminUrl($action = null, $canonical = false)
     {
         $url = $this->getViewHelper('Url');

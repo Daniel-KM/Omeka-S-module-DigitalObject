@@ -72,6 +72,17 @@ return [
             'digitalObjects' => Service\Site\BlockLayout\DigitalObjectsFactory::class,
         ],
     ],
+    'resource_page_block_layouts' => [
+        'invokables' => [
+            'digital_objects_embeds' => Site\ResourcePageBlockLayout\DigitalObjectsEmbeds::class,
+            'digital_objects_list' => Site\ResourcePageBlockLayout\DigitalObjectsList::class,
+        ],
+    ],
+    'resource_page_blocks_default' => [
+        'digital_objects' => [
+            'main' => [],
+        ],
+    ],
     'router' => [
         'routes' => [
             'admin' => [

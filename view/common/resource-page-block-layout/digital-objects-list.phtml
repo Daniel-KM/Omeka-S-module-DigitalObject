@@ -1,0 +1,14 @@
+<?php
+$translate = $this->plugin('translate');
+$digitalObjects = $this->digitalObjectInline($resource);
+?>
+<?php if ($digitalObjects): ?>
+<dl class="digital-objects-list">
+    <div class="property">
+        <dt><?= $translate('Digital objects') ?></dt>
+        <?php foreach ($digitalObjects as $do): ?>
+        <dd class="value"><?= $do->linkPretty() ?></dd>
+        <?php endforeach; ?>
+    </div>
+</dl>
+<?php endif; ?>
