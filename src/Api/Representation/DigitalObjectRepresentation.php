@@ -3,9 +3,41 @@
 namespace DigitalObject\Api\Representation;
 
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
+use Omeka\Api\Representation\ItemRepresentation;
 
 class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
 {
+    protected ?ItemRepresentation $contextItem = null;
+
+    /**
+     * Transient parent item, set by callers iterating a DO inside an item.
+     *
+     * This method simplifies processes that use media and allows to adapt them
+     * quickly without modifying them ((manifest building, sidebar inline, etc).
+     * DigitalObjects are autonomous resources without a stored item, but
+     * consumers that walk them from an item need a parent reference.
+     */
+    public function setItem(ItemRepresentation $item): self
+    {
+        $this->contextItem = $item;
+        return $this;
+    }
+
+    public function item(): ?ItemRepresentation
+    {
+        return $this->contextItem;
+    }
+
+    public function ingester(): string
+    {
+        return 'digital_object';
+    }
+
+    public function renderer(): string
+    {
+        return 'file';
+    }
+
     public function getControllerName()
     {
         return 'digital-object';
@@ -35,6 +67,13 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         ];
     }
 
+    /**
+     * Get the media data.
+     *
+     * Named mediaData() so as not to override parent::getData().
+     *
+     * @return mixed
+     */
     public function mediaData()
     {
         return $this->resource->getData();
@@ -143,30 +182,6 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
     public function primaryMedia()
     {
         return null;
-    }
-
-    /**
-     * Compat with MediaRepresentation: a DigitalObject has no parent item.
-     */
-    public function item()
-    {
-        return null;
-    }
-
-    /**
-     * Compat with MediaRepresentation: stable ingester name for the file.
-     */
-    public function ingester(): string
-    {
-        return 'digital_object';
-    }
-
-    /**
-     * Compat with MediaRepresentation: default file renderer.
-     */
-    public function renderer(): string
-    {
-        return 'file';
     }
 
     public function valueRepresentation()
