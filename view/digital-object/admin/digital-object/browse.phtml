@@ -1,44 +1,143 @@
 <?php
 $translate = $this->plugin('translate');
 $escape = $this->plugin('escapeHtml');
-$this->htmlElement('body')->appendAttribute('class', 'digital-objects browse');
+$this->htmlElement('body')->appendAttribute('class', 'digital-object browse');
 ?>
-<?php $this->headLink()->appendStylesheet($this->assetUrl('css/digital-object.css', 'DigitalObject')); ?>
 
-<?= $this->pageTitle($translate('Digital objects')) ?>
+<?php echo $this->pageTitle($translate('Digital objects')); ?>
 
 <div id="page-actions">
-    <a href="<?= $escape($this->url('admin/digital-object/default', ['action' => 'add'])) ?>" class="button"><?= $translate('Add new digital object') ?></a>
+    <?php if ($this->userIsAllowed('DigitalObject\Api\Adapter\DigitalObjectAdapter', 'create')): ?>
+    <?php echo $this->hyperlink($translate('Add new digital object'), $this->url('admin/digital-object/default', ['action' => 'add']), ['class' => 'button']); ?>
+    <?php endif; ?>
 </div>
 
-<?php if ($resources): ?>
+<?php echo $this->searchFilters(); ?>
+
+<div class="browse-controls">
+    <?php echo $this->pagination(); ?>
+    <?php echo $this->browse()->renderSortSelector('digital_objects'); ?>
+</div>
+
+<?php $this->trigger('view.browse.before'); ?>
+<?php if ($digitalObjects): ?>
+<form method="post" id="batch-form" class="disable-unsaved-warning">
+    <?php if ($this->userIsAllowed('DigitalObject\Api\Adapter\DigitalObjectAdapter', 'batch_update')): ?>
+    <div class="batch-inputs">
+        <select class="batch-actions-select" aria-label="<?php echo $translate('Batch actions'); ?>">
+            <option value="default"><?php echo $translate('Batch actions'); ?></option>
+            <option value="delete-selected" disabled="disabled"><?php echo $translate('Delete selected'); ?></option>
+        </select>
+        <div class="batch-actions">
+            <button type="button" class="default active" disabled="disabled"><?php echo $translate('Go'); ?></button>
+            <input type="hidden" name="query" class="batch-query" value="<?php echo $escape(json_encode($this->params()->fromQuery())); ?>">
+            <a class="delete button sidebar-content delete-selected" data-sidebar-selector="#sidebar-delete-selected"><?php echo $translate('Go'); ?></a>
+        </div>
+    </div>
+    <?php endif; ?>
+
 <table class="tablesaw batch-edit" data-tablesaw-mode="stack">
     <thead>
         <tr>
-            <th><?= $translate('Title') ?></th>
-            <th><?= $translate('Type') ?></th>
-            <th><?= $translate('Size') ?></th>
-            <th><?= $translate('Modified') ?></th>
+            <th>
+                <input type="checkbox" class="select-all" aria-label="<?php echo $translate('Select all'); ?>">
+                <?php echo $translate('Title'); ?>
+            </th>
+            <?php echo $this->browse()->renderHeaderRow('digital_objects'); ?>
         </tr>
     </thead>
     <tbody>
-    <?php foreach ($resources as $resource): ?>
+        <?php foreach ($digitalObjects as $do): ?>
         <tr>
             <td>
-                <?= $resource->linkPretty(null, 'edit') ?>
+                <?php if ($this->userIsAllowed('DigitalObject\Api\Adapter\DigitalObjectAdapter', 'batch_update') && ($do->userIsAllowed('update') || $do->userIsAllowed('delete'))): ?>
+                <input type="checkbox" name="resource_ids[]" value="<?php echo $do->id(); ?>" aria-label="<?php echo $translate('Select digital object'); ?>">
+                <?php endif; ?>
+                <?php echo $do->linkPretty(); ?>
+                <?php if (!$do->isPublic()): ?>
+                    <span class="o-icon-private" aria-label="<?php echo $translate('Private'); ?>"></span>
+                <?php endif; ?>
                 <ul class="actions">
-                    <li><a href="<?= $escape($resource->url('edit')) ?>" class="o-icon-edit" title="<?= $translate('Edit') ?>"></a></li>
-                    <li><a href="<?= $escape($resource->url('show')) ?>" class="o-icon-external" title="<?= $translate('Show') ?>"></a></li>
+                    <?php $this->trigger('view.browse.actions', ['resource' => $do]); ?>
+                    <?php if ($do->userIsAllowed('update')): ?>
+                    <li><?php echo $do->link('', 'edit', [
+                        'class' => 'o-icon-edit',
+                        'title' => $translate('Edit'),
+                    ]); ?></li>
+                    <?php endif; ?>
+                    <?php if ($do->userIsAllowed('delete')): ?>
+                    <li><?php echo $this->hyperlink('', '#', [
+                        'data-sidebar-selector' => '#sidebar',
+                        'data-sidebar-content-url' => $do->url('delete-confirm'),
+                        'class' => 'o-icon-delete sidebar-content',
+                        'title' => $translate('Delete'),
+                    ]); ?></li>
+                    <?php endif; ?>
+                    <li><?php echo $this->hyperlink('', '#', [
+                        'data-sidebar-selector' => '#sidebar',
+                        'data-sidebar-content-url' => $do->url('show-details'),
+                        'class' => 'o-icon-more sidebar-content',
+                        'title' => $translate('Details'),
+                    ]); ?></li>
                 </ul>
             </td>
-            <td><?= $escape($resource->mediaType() ?: '—') ?></td>
-            <td><?= $resource->size() ? $escape(number_format($resource->size())) : '—' ?></td>
-            <td><?= $resource->modified() ? $escape($this->i18n()->dateFormat($resource->modified(), 'medium', 'short')) : '—' ?></td>
+            <?php echo $this->browse()->renderContentRow('digital_objects', $do); ?>
         </tr>
-    <?php endforeach; ?>
+        <?php endforeach; ?>
     </tbody>
 </table>
-<?= $this->pagination() ?>
+
+</form>
+
+<?php $this->trigger('view.browse.after'); ?>
+<div class="browse-controls">
+    <?php echo $this->pagination(); ?>
+</div>
+
+<div id="sidebar" class="sidebar">
+    <?php echo $this->hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+    ]); ?>
+    <div class="sidebar-content"></div>
+</div>
+
+<div id="sidebar-delete-selected" class="sidebar">
+    <?php echo $this->hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+    ]); ?>
+    <div class="sidebar-content">
+        <div id="sidebar-confirm">
+            <h3><?php echo $translate('Delete digital objects'); ?></h3>
+            <p><?php echo $translate('Are you sure you would like to delete the selected digital objects?'); ?></p>
+            <p class="error"><?php echo sprintf(
+                $translate('%1$s: this action will permanently delete %2$s digital objects and cannot be undone.'),
+                sprintf('<strong>%s</strong>', $translate('Warning')),
+                '<strong><span id="delete-selected-count"></span></strong>'
+            ); ?></p>
+            <?php echo $this->form($this->formDeleteSelected); ?>
+        </div>
+    </div>
+</div>
+
+<script>
+$('#confirm-delete-selected').on('submit', function(e) {
+    var confirmForm = $(this);
+    $('#batch-form').find('input[name="resource_ids[]"]:checked:not(:disabled)').each(function() {
+        confirmForm.append($(this).clone().prop('disabled', false).attr('type', 'hidden'));
+    });
+});
+$('.delete-selected').on('click', function(e) {
+    var inputs = $('input[name="resource_ids[]"]');
+    $('#delete-selected-count').text(inputs.filter(':checked').length);
+});
+</script>
+
 <?php else: ?>
-    <p><?= $translate('No digital objects yet.') ?></p>
+
+<div class="no-resources">
+    <p><?php echo $translate('Omeka could not find any digital objects.'); ?></p>
+</div>
+
 <?php endif; ?>
