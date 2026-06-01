@@ -35,7 +35,16 @@ $form->prepare();
             <div class="field-description"><?= $this->uploadLimit() ?></div>
         </div>
         <div class="inputs">
-            <input type="file" name="file" id="file" required>
+            <input type="file" name="file" id="file">
+        </div>
+    </div>
+    <div class="field">
+        <div class="field-meta">
+            <label for="ingest_url"><?= $translate('Or URL') ?></label>
+            <div class="field-description"><?= $translate('A URL to a file to download, or to a IIIF Image info.json.') ?></div>
+        </div>
+        <div class="inputs">
+            <input type="url" name="ingest_url" id="ingest_url" placeholder="https://example.org/image/info.json">
         </div>
     </div>
 </fieldset>

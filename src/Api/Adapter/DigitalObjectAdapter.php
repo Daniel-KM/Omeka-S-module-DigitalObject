@@ -131,6 +131,12 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
                 $entity->setSource(basename($sourcePath));
             }
             $tempFile = $sideload;
+        } elseif (!empty($content['ingest_url'])) {
+            $this->hydrateUrl((string) $content['ingest_url'], $entity, $errorStore);
+            return;
+        } elseif (Request::CREATE === $request->getOperation()) {
+            $errorStore->addError('file', 'A file or a URL is required.'); // @translate
+            return;
         }
 
         if (!$tempFile) {
@@ -138,6 +144,77 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
         }
 
         $this->applyTempFile($tempFile, $entity);
+    }
+
+    /**
+     * Ingest from a URL: either a IIIF Image info.json (stored as data and
+     * served from the remote image service) or a plain file to download.
+     */
+    protected function hydrateUrl(string $url, EntityInterface $entity, ErrorStore $errorStore): void
+    {
+        $services = $this->getServiceLocator();
+        $info = $this->fetchIiifImageInfo($url);
+        if ($info !== null) {
+            $entity->setSource($url);
+            $entity->setData($info);
+            $entity->setStorageId(null);
+            $entity->setExtension(null);
+            $entity->setHasOriginal(false);
+            $entity->setHasThumbnails(false);
+            return;
+        }
+
+        $downloader = $services->get('Omeka\File\Downloader');
+        $tempFile = $downloader->download($url, $errorStore);
+        if (!$tempFile) {
+            return;
+        }
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        $tempFile->setSourceName($path !== '' ? basename($path) : $url);
+        $entity->setSource($url);
+        $this->applyTempFile($tempFile, $entity);
+    }
+
+    /**
+     * Fetch a remote IIIF Image info.json, or null when the URL is not one.
+     */
+    protected function fetchIiifImageInfo(string $url): ?array
+    {
+        $services = $this->getServiceLocator();
+        try {
+            $client = $services->get('Omeka\HttpClient');
+            $client->reset();
+            $client->setUri($url);
+            $client->setMethod('HEAD');
+            $head = $client->send();
+            $header = $head->isSuccess() ? $head->getHeaders()->get('Content-Type') : false;
+            $contentType = $header ? strtolower((string) $header->getFieldValue()) : '';
+            $looksJson = strpos($contentType, 'json') !== false
+                || substr($url, -strlen('info.json')) === 'info.json';
+            if (!$looksJson) {
+                return null;
+            }
+            $client->reset();
+            $client->setUri($url);
+            $client->setMethod('GET');
+            $client->setHeaders(['Accept' => 'application/json']);
+            $response = $client->send();
+            if (!$response->isSuccess()) {
+                return null;
+            }
+            $data = json_decode($response->getBody(), true);
+            if (!is_array($data)) {
+                return null;
+            }
+            $context = $data['@context'] ?? '';
+            $context = is_array($context) ? implode(' ', $context) : (string) $context;
+            return (($data['protocol'] ?? null) === 'http://iiif.io/api/image'
+                    || strpos($context, 'iiif.io/api/image') !== false)
+                ? $data
+                : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     protected function applyTempFile(TempFile $tempFile, EntityInterface $entity): void
