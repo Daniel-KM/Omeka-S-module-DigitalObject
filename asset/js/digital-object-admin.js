@@ -8,10 +8,15 @@
         if (!form || !file || !url) {
             return;
         }
+        // Optional: present only when the FileSideload module is installed.
+        var sideload = document.getElementById('ingest_filename');
 
         var clear = function () { url.setCustomValidity(''); };
         url.addEventListener('input', clear);
         file.addEventListener('change', clear);
+        if (sideload) {
+            sideload.addEventListener('change', clear);
+        }
 
         // Capture phase + stopImmediatePropagation so the check runs before
         // other submit handlers (resource-form.js, AdvancedResourceTemplate…)
@@ -20,7 +25,8 @@
         form.addEventListener('submit', function (e) {
             var hasFile = file.files && file.files.length > 0;
             var hasUrl = url.value.trim() !== '';
-            if (hasFile || hasUrl) {
+            var hasSideload = sideload && sideload.value !== '';
+            if (hasFile || hasUrl || hasSideload) {
                 return;
             }
             e.preventDefault();

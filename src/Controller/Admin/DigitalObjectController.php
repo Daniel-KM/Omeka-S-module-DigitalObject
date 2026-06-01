@@ -74,7 +74,25 @@ class DigitalObjectController extends AbstractActionController
         $view = new ViewModel;
         $view->setVariable('form', $form);
         $view->setVariable('postedValues', $postedValues);
+        $view->setVariable('sideloadFiles', $this->sideloadFiles());
         return $view;
+    }
+
+    /**
+     * List files available in the FileSideload directory, when the module is
+     * installed, as a flat list of paths relative to that directory.
+     */
+    protected function sideloadFiles(): array
+    {
+        if (!class_exists(\FileSideload\Module::class)) {
+            return [];
+        }
+        $services = $this->getEvent()->getApplication()->getServiceManager();
+        $directory = $services->get('Omeka\Settings')->get('file_sideload_directory');
+        if (!$directory) {
+            return [];
+        }
+        return $services->get('FileSideload\FileSystem')->listFiles($directory, true);
     }
 
     /**

@@ -119,18 +119,10 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
                 }
             }
         } elseif (!empty($content['ingest_filename'])) {
-            $sideload = $services->get('Omeka\File\TempFileFactory')->build();
-            $sourcePath = $content['ingest_filename'];
-            if (!is_readable($sourcePath)) {
-                $errorStore->addError('ingest_filename', sprintf('File "%s" is not readable.', $sourcePath));
-                return;
+            $tempFile = $this->sideloadTempFile((string) $content['ingest_filename'], $errorStore);
+            if ($tempFile && empty($content['o:source'])) {
+                $entity->setSource((string) $content['ingest_filename']);
             }
-            $sideload->setTempPath($sourcePath);
-            $sideload->setSourceName(basename($sourcePath));
-            if (empty($content['o:source'])) {
-                $entity->setSource(basename($sourcePath));
-            }
-            $tempFile = $sideload;
         } elseif (!empty($content['ingest_url'])) {
             $this->hydrateUrl((string) $content['ingest_url'], $entity, $errorStore);
             return;
@@ -144,6 +136,53 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
         }
 
         $this->applyTempFile($tempFile, $entity);
+    }
+
+    /**
+     * Build a temp file from a sideloaded file. Requires the FileSideload
+     * module, which confines the path to its configured directory; the file is
+     * copied to a real temp path so the original is never deleted by
+     * applyTempFile().
+     */
+    protected function sideloadTempFile(string $filename, ErrorStore $errorStore): ?TempFile
+    {
+        $services = $this->getServiceLocator();
+
+        // Sideload requires the FileSideload module: it confines the file to
+        // the configured directory (verifyFileOrDir). Without it, accepting an
+        // arbitrary path would allow reading any server-readable file (LFI), so
+        // it is refused.
+        if (!class_exists(\FileSideload\Module::class)
+            || !$services->has('FileSideload\FileSystem')
+        ) {
+            $errorStore->addError('ingest_filename', 'Sideload requires the module FileSideload.'); // @translate
+            return null;
+        }
+
+        $directory = $services->get('Omeka\Settings')->get('file_sideload_directory');
+        $directory = $directory ? realpath($directory) : '';
+        $isAbsoluteInside = $directory && strpos($filename, $directory) === 0;
+        $filepath = $isAbsoluteInside
+            ? $filename
+            : $directory . DIRECTORY_SEPARATOR . $filename;
+        $realPath = $services->get('FileSideload\FileSystem')
+            ->verifyFileOrDir(new \SplFileInfo($filepath));
+
+        if (!$realPath) {
+            $errorStore->addError('ingest_filename', sprintf(
+                'Cannot sideload file "%s". File does not exist or does not have sufficient permissions.', // @translate
+                $filename
+            ));
+            return null;
+        }
+
+        $tempFile = $services->get('Omeka\File\TempFileFactory')->build();
+        if (!copy($realPath, $tempFile->getTempPath())) {
+            $errorStore->addError('ingest_filename', sprintf('Cannot copy sideloaded file "%s".', $filename)); // @translate
+            return null;
+        }
+        $tempFile->setSourceName(basename($filename));
+        return $tempFile;
     }
 
     /**

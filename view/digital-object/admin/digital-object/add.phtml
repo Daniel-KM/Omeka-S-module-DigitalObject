@@ -56,6 +56,22 @@ $triggerIdentifiers = [
             <input type="url" name="ingest_url" id="ingest_url" placeholder="https://example.org/image/info.json">
         </div>
     </div>
+    <?php if (!empty($sideloadFiles)): ?>
+    <div class="field">
+        <div class="field-meta">
+            <label for="ingest_filename"><?= $translate('Or sideloaded file') ?></label>
+            <div class="field-description"><?= $translate('A file from the sideload directory on the server.') ?></div>
+        </div>
+        <div class="inputs">
+            <select name="ingest_filename" id="ingest_filename">
+                <option value=""><?= $translate('Select a file…') ?></option>
+                <?php foreach ($sideloadFiles as $sideloadFile): ?>
+                <option value="<?= $escape($sideloadFile) ?>"><?= $escape($sideloadFile) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+    <?php endif; ?>
 </fieldset>
 
 <div id="page-actions">
