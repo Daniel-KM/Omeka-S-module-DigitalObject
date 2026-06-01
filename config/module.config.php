@@ -68,12 +68,18 @@ return [
             ],
         ],
     ],
+    'service_manager' => [
+        'factories' => [
+            'Omeka\ResourcePageBlockLayoutManager' => Service\ResourcePageBlockLayoutManagerFactory::class,
+        ],
+    ],
     'view_helpers' => [
         'invokables' => [
             'thumbnail' => View\Helper\Thumbnail::class,
         ],
         'factories' => [
             'digitalObjectInline' => Service\ViewHelper\DigitalObjectInlineFactory::class,
+            'resourcePageBlocks' => Service\ViewHelper\ResourcePageBlocksFactory::class,
         ],
     ],
     'block_layouts' => [
@@ -213,6 +219,22 @@ return [
                 'dcterms:hasFormat',
             ],
             'digitalobject_storage_prefix' => 'do_',
+        ],
+        // Resource names recognized by the resource page block layout pipeline
+        // in addition to the core ones.
+        'resource_page_block_layouts_extended_resource_names' => [
+            'digital_objects',
+        ],
+        // Block layouts that should also be considered compatible with the
+        // given resource name, on top of what each block's
+        // getCompatibleResourceNames() declares.
+        'resource_page_block_layouts_extended_compat' => [
+            'digital_objects' => [
+                'resourceClass',
+                'values',
+                'linkedResources',
+                'lightboxGallery',
+            ],
         ],
     ],
 ];
