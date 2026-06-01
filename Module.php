@@ -264,6 +264,43 @@ class Module extends AbstractModule
             'view.details',
             [$this, 'displayInline']
         );
+
+        // Fallback primary media for items without a native media but linked to
+        // one or more DigitalObjects. Attached to every aggregator that emits
+        // the generic rep.resource.primary_media event.
+        foreach ([
+            \Contribute\Api\Representation\ContributionRepresentation::class,
+            \Generateur\Api\Representation\GenerationRepresentation::class,
+            \Mapping\Api\Representation\MappingRepresentation::class,
+            \Selection\Api\Representation\SelectionRepresentation::class,
+            \Selection\Api\Representation\SelectionResourceRepresentation::class,
+        ] as $identifier) {
+            $sharedEventManager->attach(
+                $identifier,
+                'rep.resource.primary_media',
+                [$this, 'fallbackPrimaryMediaForItem']
+            );
+        }
+    }
+
+    public function fallbackPrimaryMediaForItem($event): void
+    {
+        $resource = $event->getParam('resource');
+        if (!$resource instanceof \Omeka\Api\Representation\ItemRepresentation) {
+            return;
+        }
+        $services = $this->getServiceLocator();
+        $view = $services->get('ViewHelperManager');
+        if (!$view->has('digitalObjectInline')) {
+            return;
+        }
+        $dos = $view->get('digitalObjectInline')->__invoke($resource);
+        foreach ($dos as $do) {
+            if ($do) {
+                $event->setParam('primary', $do);
+                return;
+            }
+        }
     }
 
     public function displayInline($event): void
