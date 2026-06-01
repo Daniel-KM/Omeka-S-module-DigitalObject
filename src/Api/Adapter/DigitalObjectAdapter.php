@@ -186,21 +186,51 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
     }
 
     /**
-     * Ingest from a URL: either a IIIF Image info.json (stored as data and
-     * served from the remote image service) or a plain file to download.
+     * Ingest from a URL: a IIIF Image info.json (stored as data, served from
+     * the remote image service), a IIIF Presentation manifest (stored as a
+     * render discriminant, displayed in the IIIF viewer), or a plain file to
+     * download.
      */
     protected function hydrateUrl(string $url, EntityInterface $entity, ErrorStore $errorStore): void
     {
         $services = $this->getServiceLocator();
-        $info = $this->fetchIiifImageInfo($url);
-        if ($info !== null) {
-            $entity->setSource($url);
-            $entity->setData($info);
-            $entity->setStorageId(null);
-            $entity->setExtension(null);
-            $entity->setHasOriginal(false);
-            $entity->setHasThumbnails(false);
-            return;
+
+        $json = $this->fetchIiifJson($url);
+        if ($json !== null) {
+            $context = $json['@context'] ?? '';
+            $context = is_array($context) ? implode(' ', $context) : (string) $context;
+            $type = $json['type'] ?? $json['@type'] ?? '';
+            $type = is_array($type) ? implode(' ', $type) : (string) $type;
+
+            $isImage = ($json['protocol'] ?? null) === 'http://iiif.io/api/image'
+                || strpos($context, 'iiif.io/api/image') !== false;
+            $isPresentation = strpos($context, 'iiif.io/api/presentation') !== false
+                || in_array($type, ['Manifest', 'Collection', 'sc:Manifest', 'sc:Collection'], true);
+
+            if ($isImage || $isPresentation) {
+                $entity->setSource($url);
+                if ($isImage) {
+                    // Store the raw info.json: it is self-describing (its own
+                    // @context/protocol identify it), so no control key is
+                    // added (which would also collide with the info.json own
+                    // "type").
+                    $entity->setData($json);
+                } else {
+                    // A manifest is not stored; only a discriminant and the
+                    // extracted thumbnail, so the "type" key cannot collide.
+                    $data = ['type' => 'iiif-presentation'];
+                    $thumbnail = $this->extractIiifThumbnail($json);
+                    if ($thumbnail) {
+                        $data['thumbnail'] = $thumbnail;
+                    }
+                    $entity->setData($data);
+                }
+                $entity->setStorageId(null);
+                $entity->setExtension(null);
+                $entity->setHasOriginal(false);
+                $entity->setHasThumbnails(false);
+                return;
+            }
         }
 
         $downloader = $services->get('Omeka\File\Downloader');
@@ -215,9 +245,52 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
     }
 
     /**
-     * Fetch a remote IIIF Image info.json, or null when the URL is not one.
+     * Extract the thumbnail url of a IIIF Presentation manifest, when present.
+     * Falls back to the first canvas thumbnail (Presentation 3: items[0];
+     * Presentation 2: sequences[0].canvases[0]).
      */
-    protected function fetchIiifImageInfo(string $url): ?array
+    protected function extractIiifThumbnail(array $manifest): ?string
+    {
+        $url = $this->iiifThumbnailValue($manifest['thumbnail'] ?? null);
+        if ($url) {
+            return $url;
+        }
+        $canvas = $manifest['items'][0]
+            ?? $manifest['sequences'][0]['canvases'][0]
+            ?? null;
+        return is_array($canvas)
+            ? $this->iiifThumbnailValue($canvas['thumbnail'] ?? null)
+            : null;
+    }
+
+    /**
+     * Resolve a IIIF thumbnail value to a url (string, or object with id/@id).
+     */
+    protected function iiifThumbnailValue($thumbnail): ?string
+    {
+        if (!$thumbnail) {
+            return null;
+        }
+        if (is_string($thumbnail)) {
+            return $thumbnail;
+        }
+        if (is_array($thumbnail)) {
+            $first = $thumbnail[0] ?? $thumbnail;
+            if (is_string($first)) {
+                return $first;
+            }
+            if (is_array($first)) {
+                $id = $first['id'] ?? $first['@id'] ?? null;
+                return is_string($id) ? $id : null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Fetch a remote JSON document (IIIF info.json or manifest), or null.
+     */
+    protected function fetchIiifJson(string $url): ?array
     {
         $services = $this->getServiceLocator();
         try {
@@ -229,7 +302,8 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
             $header = $head->isSuccess() ? $head->getHeaders()->get('Content-Type') : false;
             $contentType = $header ? strtolower((string) $header->getFieldValue()) : '';
             $looksJson = strpos($contentType, 'json') !== false
-                || substr($url, -strlen('info.json')) === 'info.json';
+                || substr($url, -strlen('info.json')) === 'info.json'
+                || substr($url, -strlen('manifest')) === 'manifest';
             if (!$looksJson) {
                 return null;
             }
@@ -242,15 +316,7 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
                 return null;
             }
             $data = json_decode($response->getBody(), true);
-            if (!is_array($data)) {
-                return null;
-            }
-            $context = $data['@context'] ?? '';
-            $context = is_array($context) ? implode(' ', $context) : (string) $context;
-            return (($data['protocol'] ?? null) === 'http://iiif.io/api/image'
-                    || strpos($context, 'iiif.io/api/image') !== false)
-                ? $data
-                : null;
+            return is_array($data) ? $data : null;
         } catch (\Throwable $e) {
             return null;
         }

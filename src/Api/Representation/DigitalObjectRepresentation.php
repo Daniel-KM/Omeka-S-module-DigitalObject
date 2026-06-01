@@ -28,28 +28,56 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return $this->contextItem;
     }
 
+    /**
+     * Nature of the digital object content: 'file', 'iiif-image' or
+     * 'iiif-presentation'. A IIIF Image is detected from its self-describing
+     * info.json (stored raw as data), so it carries no control key; a IIIF
+     * Presentation stores no payload, only the 'type' discriminant.
+     *
+     * Internal classification from which ingester()/renderer() derive; not part
+     * of the public representation API (consumers use renderer()).
+     */
+    protected function type(): string
+    {
+        $data = $this->resource->getData();
+        if (!is_array($data)) {
+            return 'file';
+        }
+        // IIIF Image: the info.json is self-describing. Tested first, so the
+        // info.json own "type" (e.g. "ImageService3") is never mistaken for the
+        // discriminant.
+        $context = $data['@context'] ?? '';
+        $context = is_array($context) ? implode(' ', $context) : (string) $context;
+        if (($data['protocol'] ?? null) === 'http://iiif.io/api/image'
+            || strpos($context, 'iiif.io/api/image') !== false
+        ) {
+            return 'iiif-image';
+        }
+        if (($data['type'] ?? null) === 'iiif-presentation') {
+            return 'iiif-presentation';
+        }
+        return 'file';
+    }
+
     public function ingester(): string
     {
-        // A digital object exported to a IIIF repository stores the remote
-        // info.json as its data. The standard IIIF Image API markers (the
-        // "protocol" field or the "@context") identify such a digital object so
-        // consumers like IiifServer serve it from the remote image service.
-        $data = $this->resource->getData();
-        if (is_array($data)) {
-            $context = $data['@context'] ?? '';
-            $context = is_array($context) ? implode(' ', $context) : (string) $context;
-            if (($data['protocol'] ?? null) === 'http://iiif.io/api/image'
-                || strpos($context, 'iiif.io/api/image') !== false
-            ) {
-                return 'iiif';
-            }
-        }
+        // A digital object has no pluggable ingestion: its ingester is always
+        // itself. IIIF detection by consumers (IiifServer) is based on
+        // renderer(), not ingester().
         return 'digital_object';
     }
 
     public function renderer(): string
     {
-        return $this->ingester() === 'iiif' ? 'iiif' : 'file';
+        // Mirror the core Media IIIF renderer names ('iiif', 'iiif_presentation')
+        // so consumers can test renderer() uniformly for media and digital
+        // objects.
+        $typesToRenderers = [
+            'iiif-image' => 'iiif',
+            'iiif-presentation' => 'iiif_presentation',
+        ];
+        return $typesToRenderers[$this->type()]
+            ?? 'file';
     }
 
     public function getControllerName()
@@ -185,6 +213,13 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         if ($this->hasThumbnails()) {
             return $this->getFileUrl($type, $this->storageId(), 'jpg');
         }
+        // A IIIF Presentation manifest stores its own thumbnail url.
+        if ($this->renderer() === 'iiif_presentation') {
+            $data = $this->resource->getData();
+            return is_array($data) && !empty($data['thumbnail'])
+                ? (string) $data['thumbnail']
+                : null;
+        }
         // No local derivatives: resolve the thumbnail from the remote IIIF
         // image service.
         return $this->iiifThumbnailUrl($type);
@@ -195,7 +230,7 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
      */
     protected function iiifThumbnailUrl(string $type): ?string
     {
-        if ($this->ingester() !== 'iiif') {
+        if ($this->type() !== 'iiif-image') {
             return null;
         }
         $serviceId = $this->iiifImageServiceId();
@@ -223,7 +258,7 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
     }
 
     /**
-     * Remote IIIF info.json without the export-only ingester/renderer keys.
+     * Remote IIIF Image info.json, stored raw as data (no control key added).
      */
     protected function iiifTileSources(): array
     {
@@ -231,7 +266,6 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         if (!is_array($data)) {
             return [];
         }
-        unset($data['ingester'], $data['renderer']);
         return $data;
     }
 
@@ -262,8 +296,12 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
 
     public function render(array $options = [])
     {
-        if ($this->ingester() === 'iiif') {
+        $renderer = $this->renderer();
+        if ($renderer === 'iiif') {
             return $this->renderIiif($options);
+        }
+        if ($renderer === 'iiif_presentation') {
+            return $this->renderIiifPresentation($options);
         }
 
         $mediaType = (string) $this->mediaType();
@@ -322,6 +360,21 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
             $thumbnail($this, $thumbnailType),
             $escape($this->displayTitle())
         );
+    }
+
+    /**
+     * Render a remote IIIF Presentation manifest in the core IIIF viewer, using
+     * the same idiom as the core Omeka\Media\Renderer\IiifPresentation
+     * renderer.
+     */
+    protected function renderIiifPresentation(array $options = []): string
+    {
+        $url = (string) $this->source();
+        if ($url === '') {
+            return '';
+        }
+        $view = $this->getServiceLocator()->get('ViewRenderer');
+        return $view->iiifViewer(['url' => $url], $options);
     }
 
     /**

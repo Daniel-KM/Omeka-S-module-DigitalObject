@@ -45,6 +45,7 @@ $triggerIdentifiers = [
         <img src="<?= $escape($do->thumbnailUrl('medium')) ?>" alt="">
     <?php endif; ?>
     <dl>
+        <dt><?= $translate('Type') ?></dt><dd><?= $escape($do->renderer()) ?></dd>
         <dt><?= $translate('Source') ?></dt><dd><?= $escape($do->source() ?? '—') ?></dd>
         <dt><?= $translate('Media type') ?></dt><dd><?= $escape($do->mediaType() ?? '—') ?></dd>
         <dt><?= $translate('Size') ?></dt><dd><?= $do->size() ? sprintf($translate('%s bytes'), $escape(number_format($do->size()))) : '—' ?></dd>
