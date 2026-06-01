@@ -10,8 +10,16 @@ $this->headScript()->appendFile($this->assetUrl('js/digital-object-admin.js', 'D
 $form->setAttribute('action', $this->url('admin/digital-object/default', ['action' => 'add']));
 $form->setAttribute('enctype', 'multipart/form-data');
 $form->prepare();
+// Also use the item controller identifier so modules that enhance the item
+// resource form (assets for data types, value suggest, etc.) apply here too.
+$triggerIdentifiers = [
+    'DigitalObject\Controller\Admin\DigitalObject',
+    'Omeka\Controller\Admin\Item',
+];
 ?>
 <?= $this->pageTitle($translate('New digital object'), 1, $translate('Digital objects'), $translate('Add')) ?>
+
+<?php $this->trigger('view.add.before', [], false, $triggerIdentifiers); ?>
 
 <?= $this->form()->openTag($form) ?>
 
@@ -61,3 +69,5 @@ $form->prepare();
 <?= $this->form()->closeTag() ?>
 
 <?= $this->partial('common/resource-form-templates.phtml') ?>
+
+<?php $this->trigger('view.add.after', [], false, $triggerIdentifiers); ?>

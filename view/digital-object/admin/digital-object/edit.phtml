@@ -10,8 +10,16 @@ $do = $resource;
 $form->setAttribute('action', $this->url('admin/digital-object/id', ['id' => $do->id(), 'action' => 'edit']));
 $form->setAttribute('enctype', 'multipart/form-data');
 $form->prepare();
+// Also use the item controller identifier so modules that enhance the item
+// resource form (assets for data types, value suggest, etc.) apply here too.
+$triggerIdentifiers = [
+    'DigitalObject\Controller\Admin\DigitalObject',
+    'Omeka\Controller\Admin\Item',
+];
 ?>
 <?= $this->pageTitle($do->displayTitle(), 1, $translate('Digital object')) ?>
+
+<?php $this->trigger('view.edit.before', [], false, $triggerIdentifiers); ?>
 
 <?= $this->form()->openTag($form) ?>
 
@@ -56,3 +64,5 @@ $form->prepare();
 <?= $this->form()->closeTag() ?>
 
 <?= $this->partial('common/resource-form-templates.phtml') ?>
+
+<?php $this->trigger('view.edit.after', [], false, $triggerIdentifiers); ?>

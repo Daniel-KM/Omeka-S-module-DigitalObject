@@ -28,11 +28,9 @@ $sectionNavs['linked-resources'] = $translate('Linked resources');
 <?php echo $this->sectionNav($sectionNavs, 'view.show.section_nav', $digitalObject); ?>
 
 <div id="digital-object-metadata" class="active section">
-    <?php if ($digitalObject->hasThumbnails()): ?>
     <div class="digital-object-preview">
-        <img src="<?php echo $escape($digitalObject->thumbnailUrl('large') ?: $digitalObject->thumbnailUrl('medium')); ?>" alt="<?php echo $escape($digitalObject->altText() ?? ''); ?>">
+        <?php echo $digitalObject->render(); ?>
     </div>
-    <?php endif; ?>
     <?php if ($digitalObject->resourceClass()): ?>
     <dl class="resource-class">
         <div class="meta-group">
