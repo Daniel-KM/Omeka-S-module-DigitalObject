@@ -3,6 +3,9 @@
 namespace DigitalObject;
 
 return [
+    'js_translate_strings' => [
+        'A file or a URL is required.', // @translate
+    ],
     'entity_manager' => [
         'resource_discriminator_map' => [
             Entity\DigitalObject::class => Entity\DigitalObject::class,

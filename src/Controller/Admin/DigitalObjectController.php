@@ -52,8 +52,10 @@ class DigitalObjectController extends AbstractActionController
         $form->setAttribute('id', 'add-digital-object');
         $form->setAttribute('enctype', 'multipart/form-data');
 
+        $postedValues = null;
         if ($this->getRequest()->isPost()) {
             $data = $this->params()->fromPost();
+            $postedValuesJson = $data['values_json'] ?? null;
             $fileData = $this->params()->fromFiles();
             $data = $this->mergeValuesJson($data);
             $form->setData($data);
@@ -66,11 +68,35 @@ class DigitalObjectController extends AbstractActionController
             } else {
                 $this->messenger()->addFormErrors($form);
             }
+            $postedValues = $this->postedValuesToJson($postedValuesJson);
         }
 
         $view = new ViewModel;
         $view->setVariable('form', $form);
+        $view->setVariable('postedValues', $postedValues);
         return $view;
+    }
+
+    /**
+     * Convert the raw POSTed values_json into the shape expected by
+     * resource-form.js on re-render after a failed submission.
+     */
+    protected function postedValuesToJson(?string $postedValuesJson): ?array
+    {
+        if (!$postedValuesJson) {
+            return null;
+        }
+        $decoded = json_decode($postedValuesJson, true);
+        if (!is_array($decoded)) {
+            return null;
+        }
+        $out = [];
+        foreach ($decoded as $term => $values) {
+            if (is_array($values)) {
+                $out[$term] = ['values' => $values];
+            }
+        }
+        return $out;
     }
 
     public function editAction()
