@@ -73,12 +73,6 @@ TODO
 ----
 
 - [ ] Replace media?
-- [ ] Public site page for digital objects (site controller + route
-  `/s/<slug>/digital-object/<id>` + template `site/digital-object/show.phtml`)
-  and a `DigitalObjectRender` resource page block compatible with the
-  `digital_objects` resource name (equivalent to core `MediaRender` on the
-  media public page). Currently digital objects are only accessible inline
-  through their referencing items.
 
 
 Warning

@@ -91,6 +91,7 @@ return [
         'invokables' => [
             'digital_objects_embeds' => Site\ResourcePageBlockLayout\DigitalObjectsEmbeds::class,
             'digital_objects_list' => Site\ResourcePageBlockLayout\DigitalObjectsList::class,
+            'digital_object_render' => Site\ResourcePageBlockLayout\DigitalObjectRender::class,
         ],
     ],
     'resource_page_blocks_default' => [
