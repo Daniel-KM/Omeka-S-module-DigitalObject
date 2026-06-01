@@ -1,0 +1,26 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var \Omeka\Api\Representation\ItemRepresentation $resource
+ * @var \Omeka\Api\Representation\ItemRepresentation $item
+ */
+
+if ($this->digitalObjectInline($item)) {
+    return;
+}
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$assetUrl = $plugins->get('assetUrl');
+$translate = $plugins->get('translate');
+$escapeAttr = $plugins->get('escapeHtmlAttr');
+?>
+
+<div class="block block-resource block-no-resource block-no-digital-object">
+    <div class="asset asset-no-digital-object">
+        <img src="<?= $escapeAttr($assetUrl('thumbnails/default.png')) ?>" alt="<?= $escapeAttr($translate('Unavailable resource')) ?>">
+    </div>
+    <p class="resource-none digital-object-none">
+        <?= $escape($translate('Unavailable resource')) ?>
+    </p>
+</div>
