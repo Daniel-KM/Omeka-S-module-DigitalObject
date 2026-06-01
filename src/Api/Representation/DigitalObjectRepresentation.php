@@ -30,12 +30,26 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
 
     public function ingester(): string
     {
+        // A digital object exported to a IIIF repository stores the remote
+        // info.json as its data. The standard IIIF Image API markers (the
+        // "protocol" field or the "@context") identify such a digital object so
+        // consumers like IiifServer serve it from the remote image service.
+        $data = $this->resource->getData();
+        if (is_array($data)) {
+            $context = $data['@context'] ?? '';
+            $context = is_array($context) ? implode(' ', $context) : (string) $context;
+            if (($data['protocol'] ?? null) === 'http://iiif.io/api/image'
+                || strpos($context, 'iiif.io/api/image') !== false
+            ) {
+                return 'iiif';
+            }
+        }
         return 'digital_object';
     }
 
     public function renderer(): string
     {
-        return 'file';
+        return $this->ingester() === 'iiif' ? 'iiif' : 'file';
     }
 
     public function getControllerName()
@@ -150,20 +164,75 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
 
     public function originalUrl(): ?string
     {
-        if (!$this->hasOriginal()) {
-            return null;
+        if ($this->hasOriginal()) {
+            return $this->getFileUrl('original', $this->filename());
         }
-        return $this->getFileUrl('original', $this->filename());
+        // A digital object exported to a remote repository keeps no local
+        // original but stores the remote file url as source.
+        $source = (string) $this->source();
+        return strpos($source, 'http://') === 0 || strpos($source, 'https://') === 0
+            ? $source
+            : null;
     }
 
     public function thumbnailUrl($type): ?string
     {
         $manager = $this->getServiceLocator()->get('Omeka\File\ThumbnailManager');
         $types = $manager->getTypes();
-        if (!$this->hasThumbnails() || !in_array($type, $types, true)) {
+        if (!in_array($type, $types, true)) {
             return null;
         }
-        return $this->getFileUrl($type, $this->storageId(), 'jpg');
+        if ($this->hasThumbnails()) {
+            return $this->getFileUrl($type, $this->storageId(), 'jpg');
+        }
+        // No local derivatives: resolve the thumbnail from the remote IIIF
+        // image service.
+        return $this->iiifThumbnailUrl($type);
+    }
+
+    /**
+     * Build a thumbnail url from the remote IIIF image service stored as data.
+     */
+    protected function iiifThumbnailUrl(string $type): ?string
+    {
+        if ($this->ingester() !== 'iiif') {
+            return null;
+        }
+        $serviceId = $this->iiifImageServiceId();
+        if (!$serviceId) {
+            return null;
+        }
+        $sizes = ['large' => 800, 'medium' => 200, 'square' => 200];
+        $max = $sizes[$type] ?? 200;
+        // Square uses the square region; other types keep the full region.
+        $region = $type === 'square' ? 'square' : 'full';
+        return sprintf('%s/%s/!%d,%d/0/default.jpg', $serviceId, $region, $max, $max);
+    }
+
+    /**
+     * Base id of the remote IIIF image service (info.json @id or id).
+     */
+    protected function iiifImageServiceId(): ?string
+    {
+        $data = $this->resource->getData();
+        if (!is_array($data)) {
+            return null;
+        }
+        $id = $data['id'] ?? $data['@id'] ?? null;
+        return is_string($id) && $id !== '' ? rtrim($id, '/') : null;
+    }
+
+    /**
+     * Remote IIIF info.json without the export-only ingester/renderer keys.
+     */
+    protected function iiifTileSources(): array
+    {
+        $data = $this->resource->getData();
+        if (!is_array($data)) {
+            return [];
+        }
+        unset($data['ingester'], $data['renderer']);
+        return $data;
     }
 
     public function thumbnailUrls(): array
@@ -193,6 +262,10 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
 
     public function render(array $options = [])
     {
+        if ($this->ingester() === 'iiif') {
+            return $this->renderIiif($options);
+        }
+
         $mediaType = (string) $this->mediaType();
         $primary = strtok($mediaType, '/');
         $title = $this->displayTitle();
@@ -248,6 +321,53 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
             $escape($url),
             $thumbnail($this, $thumbnailType),
             $escape($this->displayTitle())
+        );
+    }
+
+    /**
+     * Render a remote IIIF image service through OpenSeadragon, using the same
+     * tile sources idiom as the core Omeka\Media\Renderer\IIIF renderer.
+     */
+    protected function renderIiif(array $options = []): string
+    {
+        $view = $this->getServiceLocator()->get('ViewRenderer');
+        $escape = $view->plugin('escapeHtml');
+        $tileSources = $this->iiifTileSources();
+        if (!$tileSources) {
+            // No info.json available: fall back to a plain link.
+            return sprintf('<a href="%s">%s</a>',
+                $escape((string) $this->originalUrl()),
+                $escape($this->displayTitle()));
+        }
+
+        $view->headScript()->appendFile(
+            $view->assetUrl('vendor/openseadragon/openseadragon.min.js', 'Omeka')
+        );
+        $id = sprintf('iiif-do-%s', $this->id());
+        $prefixUrl = $view->assetUrl('vendor/openseadragon/images/', 'Omeka', false, false);
+        $height = isset($options['height'])
+            ? sprintf('%spx', (int) $options['height'])
+            : '400px';
+
+        $html = <<<'HTML'
+        <div class="openseadragon" id="%1$s" data-prefix-url="%2$s" data-tile-sources="%3$s" style="height: %4$s;"></div>
+        <script>
+        {
+            const openSeadragonDiv = document.getElementById('%1$s');
+            const viewer = OpenSeadragon({
+                id: '%1$s',
+                prefixUrl: openSeadragonDiv.dataset.prefixUrl,
+                tileSources: [JSON.parse(openSeadragonDiv.dataset.tileSources)]
+            });
+        }
+        </script>
+        HTML;
+        return sprintf(
+            $html,
+            $id,
+            $escape($prefixUrl),
+            $escape(json_encode($tileSources)),
+            $height
         );
     }
 
