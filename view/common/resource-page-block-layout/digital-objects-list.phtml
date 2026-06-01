@@ -1,13 +1,14 @@
 <?php
 $translate = $this->plugin('translate');
 $digitalObjects = $this->digitalObjectInline($resource);
+$linkType = $this->siteSetting('attachment_link_type', 'media');
 ?>
 <?php if ($digitalObjects): ?>
 <dl class="digital-objects-list">
     <div class="property">
         <dt><?= $translate('Digital objects') ?></dt>
         <?php foreach ($digitalObjects as $do): ?>
-        <dd class="value"><?= $do->linkPretty() ?></dd>
+        <dd class="value"><?= $do->attachmentLink($linkType) ?></dd>
         <?php endforeach; ?>
     </div>
 </dl>

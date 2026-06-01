@@ -218,6 +218,39 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return sprintf('<a href="%s">%s</a>', $escape($url), $escape($title));
     }
 
+    /**
+     * Thumbnail + title link honoring the site setting "attachment_link_type".
+     *
+     * This method allows to display do like a media attachment.
+     * For a digital object: "media" (default) links to the digital object page,
+     * "original" to the file, "item" to the context item when iterating inside
+     * one, else falls back to the digital object page (a digital object is
+     * autonomous, with no single parent item).
+     */
+    public function attachmentLink(string $linkType = 'media', string $thumbnailType = 'square'): string
+    {
+        if ($linkType === 'item' && $this->contextItem()) {
+            $url = $this->contextItem()->siteUrl();
+        } elseif ($linkType === 'original') {
+            $url = $this->originalUrl();
+        } else {
+            $url = null;
+        }
+        if (!$url) {
+            // "media" and every fallback: the digital object own page.
+            return $this->linkPretty($thumbnailType);
+        }
+        $view = $this->getServiceLocator()->get('ViewRenderer');
+        $escape = $view->plugin('escapeHtml');
+        $thumbnail = $view->plugin('thumbnail');
+        return sprintf(
+            '<a class="resource-link" href="%s">%s<span class="resource-name">%s</span></a>',
+            $escape($url),
+            $thumbnail($this, $thumbnailType),
+            $escape($this->displayTitle())
+        );
+    }
+
     public function siteUrl($siteSlug = null, $canonical = false)
     {
         if ($siteSlug === null) {

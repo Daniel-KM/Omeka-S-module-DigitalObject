@@ -1,9 +1,10 @@
 <?php
 $translate = $this->plugin('translate');
+$linkType = $this->siteSetting('attachment_link_type', 'media');
 ?>
 <div class="meta-group">
     <h4><?= sprintf($translate('Digital objects (%d)'), count($digitalObjects)) ?></h4>
     <?php foreach ($digitalObjects as $do): ?>
-    <div class="value"><?= $do->linkPretty() ?></div>
+    <div class="value"><?= $do->attachmentLink($linkType) ?></div>
     <?php endforeach; ?>
 </div>
