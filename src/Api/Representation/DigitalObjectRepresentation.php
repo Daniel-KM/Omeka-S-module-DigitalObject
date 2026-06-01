@@ -10,6 +10,12 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
     protected ?ItemRepresentation $contextItem = null;
 
     /**
+     * Memoized content type (file / iiif-image / iiif-presentation), since it
+     * is read repeatedly (ingester, renderer, thumbnailUrl, thumbnailUrls).
+     */
+    private ?string $typeCache = null;
+
+    /**
      * Transient parent item, set by callers iterating a DO inside an item.
      *
      * This method simplifies processes that use media and allows to adapt them
@@ -39,9 +45,12 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
      */
     protected function type(): string
     {
+        if ($this->typeCache !== null) {
+            return $this->typeCache;
+        }
         $data = $this->resource->getData();
         if (!is_array($data)) {
-            return 'file';
+            return $this->typeCache = 'file';
         }
         // IIIF Image: the info.json is self-describing. Tested first, so the
         // info.json own "type" (e.g. "ImageService3") is never mistaken for the
@@ -51,12 +60,12 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         if (($data['protocol'] ?? null) === 'http://iiif.io/api/image'
             || strpos($context, 'iiif.io/api/image') !== false
         ) {
-            return 'iiif-image';
+            return $this->typeCache = 'iiif-image';
         }
         if (($data['type'] ?? null) === 'iiif-presentation') {
-            return 'iiif-presentation';
+            return $this->typeCache = 'iiif-presentation';
         }
-        return 'file';
+        return $this->typeCache = 'file';
     }
 
     public function ingester(): string
