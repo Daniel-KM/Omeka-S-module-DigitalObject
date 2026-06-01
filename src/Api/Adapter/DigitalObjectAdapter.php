@@ -30,7 +30,6 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
         'title' => 'title',
         'source' => 'source',
         'media_type' => 'mediaType',
-        'storage_id' => 'storageId',
         'extension' => 'extension',
         'sha256' => 'sha256',
         'size' => 'size',

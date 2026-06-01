@@ -90,17 +90,22 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return 'o:DigitalObject';
     }
 
+    /**
+     * The json ld is adapted from MediaRepresentation.
+     *
+     * {@inheritDoc}
+     * @see \Omeka\Api\Representation\AbstractResourceEntityRepresentation::getResourceJsonLd()
+     */
     public function getResourceJsonLd()
     {
         return [
+            'o:ingester' => $this->ingester(),
+            'o:renderer' => $this->renderer(),
             'o:source' => $this->source(),
             'o:media_type' => $this->mediaType(),
-            'o:storage_id' => $this->storageId(),
-            'o:extension' => $this->extension(),
             'o:sha256' => $this->sha256(),
             'o:size' => $this->size(),
-            'o:has_original' => $this->hasOriginal(),
-            'o:has_thumbnails' => $this->hasThumbnails(),
+            'o:filename' => $this->filename(),
             'o:lang' => $this->lang(),
             'o:alt_text' => $this->altText(),
             'o:original_url' => $this->originalUrl(),
