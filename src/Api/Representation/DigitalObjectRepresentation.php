@@ -59,10 +59,10 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
             'o:size' => $this->size(),
             'o:has_original' => $this->hasOriginal(),
             'o:has_thumbnails' => $this->hasThumbnails(),
-            'o:original_url' => $this->originalUrl(),
-            'o:thumbnail_urls' => $this->thumbnailUrls(),
             'o:lang' => $this->lang(),
             'o:alt_text' => $this->altText(),
+            'o:original_url' => $this->originalUrl(),
+            'o:thumbnail_urls' => $this->thumbnailUrls(),
             'data' => $this->mediaData(),
         ];
     }
@@ -179,29 +179,16 @@ class DigitalObjectRepresentation extends AbstractResourceEntityRepresentation
         return $urls;
     }
 
+    /**
+     * A DigitalObject is file-backed and acts as its own primary media for the
+     * thumbnail pipeline. Same idiom as MediaRepresentation::primaryMedia().
+     * Returning $this lets the core AbstractRepresentation::thumbnailDisplayUrl
+     * and AbstractResourceEntityRepresentation::valueRepresentation work for
+     * DOs without custom overrides.
+     */
     public function primaryMedia()
     {
-        return null;
-    }
-
-    public function valueRepresentation()
-    {
-        $representation = parent::valueRepresentation();
-        if (!isset($representation['thumbnail_url']) && $this->hasThumbnails()) {
-            $representation['thumbnail_url'] = $this->thumbnailUrl('square');
-            $representation['thumbnail_title'] = $this->displayTitle();
-            $representation['thumbnail_type'] = $this->mediaType();
-        }
-        return $representation;
-    }
-
-    public function thumbnailDisplayUrl($type)
-    {
-        $thumbnail = $this->thumbnail();
-        if ($thumbnail) {
-            return $thumbnail->assetUrl();
-        }
-        return $this->thumbnailUrl($type);
+        return $this;
     }
 
     public function render(array $options = [])
