@@ -219,6 +219,7 @@ return [
             // the referencing item's display. See readme for recommendations.
             'digitalobject_inline_properties' => [
                 'dcterms:hasFormat',
+                'dcterms:hasPart',
             ],
             'digitalobject_storage_prefix' => 'do_',
         ],

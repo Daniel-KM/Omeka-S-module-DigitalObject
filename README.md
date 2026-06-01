@@ -53,11 +53,17 @@ To attach a digital object to a resource, use the data type `resource:digitalobj
 The link is expressed as a standard RDF Value, using any property the
 admin chooses. The setting `digitalobject_inline_properties` lists which
 properties trigger inline rendering of the referenced digital objects in
-the item display. Standard candidates, by use case:
+the item display. The defaults are `dcterms:hasFormat` (for digital
+surrogates of an item — scan of a book, PDF of an article…) and
+`dcterms:hasPart` (for digital objects that are *components* of an item —
+one DO per page in a multi-page book, per figure, per chapter…).
+Choosing the right one preserves the semantics for linked-data
+consumers; the module itself treats both lists identically. Standard
+candidates, by use case:
 
 | Vocabulary    | Property                                                      | Use case                                                |
 |---------------|------------------------------------------------------------- -|---------------------------------------------------------|
-| Dublin Core   | `dcterms:hasFormat` (default) / `dcterms:relation`            | Generic, neutral on media type and described entity     |
+| Dublin Core   | `dcterms:hasFormat` (default, "another format of the whole") / `dcterms:hasPart` (default, "component of the whole") / `dcterms:relation` | Generic, neutral on media type and described entity     |
 | BIBFRAME      | `bf:hasInstance` / `bf:hasItem` / `bf:electronicLocator`      | Libraries (Library of Congress, MARC successor)         |
 | RDA Registry  | `rdaw:hasManifestationOfWork` / `rdam:hasItem`                | Libraries (Resource Description and Access)             |
 | CIDOC-CRM     | `crm:P138i_is_represented_by`                                 | Museum collections, strict ontology                     |
