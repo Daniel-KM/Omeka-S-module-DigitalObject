@@ -27,7 +27,7 @@ $triggerIdentifiers = [
     'resource-values' => $translate('Values'),
     'digital-object-file' => $translate('File'),
     'advanced-settings' => $translate('Advanced'),
-]) ?>
+], 'view.add.section_nav') ?>
 
 <?= $this->partial('common/resource-fields.phtml', [
     'form' => $form,
@@ -79,6 +79,8 @@ $triggerIdentifiers = [
     <?= $this->cancelButton() ?>
     <button type="submit"><?= $translate('Add') ?></button>
 </div>
+
+<?php $this->trigger('view.add.form.after', ['form' => $form], false, $triggerIdentifiers); ?>
 
 <?= $formElement($form->get('csrf')) ?>
 
