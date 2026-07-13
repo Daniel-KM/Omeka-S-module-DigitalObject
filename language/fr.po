@@ -1,0 +1,405 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-01 00:00+0000\n"
+"PO-Revision-Date: 2026-06-01 00:00+0000\n"
+"Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.6\n"
+
+#: Module.php:72
+msgid "WARNING"
+msgstr "ATTENTION"
+
+#: Module.php:74
+#, php-format
+msgid ""
+"%d digital objects still exist. Without conversion, files and derivatives "
+"will be left on disk."
+msgstr ""
+
+#: Module.php:79
+msgid ""
+"Convert digital objects back to media before uninstalling (synchronous, may "
+"be long)."
+msgstr ""
+
+#: Module.php:100
+#, php-format
+msgid ""
+"Cannot uninstall: %d digital objects still exist. Tick the conversion "
+"checkbox in the uninstall confirmation, or convert/delete them beforehand."
+msgstr ""
+
+#: Module.php:117
+#, php-format
+msgid ""
+"Conversion incomplete: %d digital objects could not be converted. Check job "
+"logs and retry."
+msgstr ""
+
+#: Module.php:132
+#, php-format
+msgid "The module %1$s should be upgraded to version %2$s or later."
+msgstr "Le module %1$s doit être mis à niveau à la version %2$s ou supérieure."
+
+#: src/Site/BlockLayout/DigitalObjects.php:88
+#: view/common/data-type/resource.phtml:42
+#: view/common/resource-page-block-layout/digital-objects-list.phtml:8
+#: view/digital-object/admin/digital-object/add.phtml:13
+#: view/digital-object/admin/digital-object/browse.phtml:8
+msgid "Digital objects"
+msgstr "Objets numériques"
+
+#: src/Site/BlockLayout/DigitalObjects.php:113
+msgid "Add digital object"
+msgstr "Ajouter un objet numérique"
+
+#: view/common/digital-object-inline.phtml:5
+#, php-format
+msgid "Digital objects (%d)"
+msgstr "Objets numériques (%d)"
+
+#: view/common/resource-page-block-layout/no-digital-object.phtml:21
+#: view/common/resource-page-block-layout/no-digital-object.phtml:24
+msgid "Unavailable resource"
+msgstr "Ressource indisponible"
+
+#: view/digital-object/admin/digital-object/add.phtml:13
+msgid "New digital object"
+msgstr "Nouvel objet numérique"
+
+#: view/digital-object/admin/digital-object/browse.phtml:12
+msgid "Add new digital object"
+msgstr "AJouter un nouvel objet numérique"
+
+#: view/digital-object/admin/digital-object/browse.phtml:55
+#: view/digital-object/admin/digital-object/sidebar-select.phtml:8
+msgid "Select digital object"
+msgstr "Choisir l’objet numérique"
+
+#: view/digital-object/admin/digital-object/browse.phtml:113
+msgid "Delete digital objects"
+msgstr "Supprimer les objets numériques"
+
+#: view/digital-object/admin/digital-object/browse.phtml:114
+msgid "Are you sure you would like to delete the selected digital objects?"
+msgstr ""
+
+#: view/digital-object/admin/digital-object/browse.phtml:116
+#, php-format
+msgid ""
+"%1$s: this action will permanently delete %2$s digital objects and cannot be "
+"undone."
+msgstr ""
+
+#: view/digital-object/admin/digital-object/browse.phtml:141
+msgid "Omeka could not find any digital objects."
+msgstr ""
+
+#: view/digital-object/admin/digital-object/edit.phtml:14
+#: view/digital-object/admin/digital-object/show.phtml:19
+#: view/omeka/site/digital-object/show.phtml:11
+msgid "Digital object"
+msgstr "Objet numérique"
+
+#: view/digital-object/admin/digital-object/edit.phtml:34
+msgid ""
+"The file is immutable. To replace it, delete this digital object and create "
+"a new one."
+msgstr ""
+"Le fichier est immuable. Pour le remplacer, supprimez l’objet numérique et "
+"créez-en un nouveau."
+
+#: view/digital-object/admin/digital-object/edit.phtml:43
+#: view/digital-object/admin/digital-object/show.phtml:138
+msgid "SHA-256"
+msgstr "SHA-256"
+
+#: view/digital-object/admin/digital-object/edit.phtml:44
+#: view/digital-object/admin/digital-object/show.phtml:132
+msgid "Storage ID"
+msgstr "Id de stockage"
+
+#: view/digital-object/admin/digital-object/show.phtml:14
+msgid "Linked items"
+msgstr "Contenus liés"
+
+#: view/digital-object/admin/digital-object/show.phtml:24
+msgid "Edit digital object"
+msgstr "Modifier l’objet numérique"
+
+#: view/digital-object/admin/digital-object/show.phtml:76
+msgid "No resources link to this digital object."
+msgstr ""
+
+#: view/digital-object/admin/digital-object/sidebar-select.phtml:38
+msgid "Omeka could not find any digital object."
+msgstr ""
+
+#: view/omeka/site-admin/index/theme-resource-pages.phtml:38
+msgid "Digital object page"
+msgstr "Page objet numérique"
+
+#: Module.php:72
+msgid "</strong>: "
+msgstr ""
+
+#: src/Job/MediaToDigitalObject.php:56
+msgid "Query returned no item, nothing to convert."
+msgstr ""
+
+#: src/Job/MediaToDigitalObject.php:72
+msgid ""
+"{count} storage_id collisions between table \"media\" and table "
+"\"digital_object\". Migration aborted. Resolve collisions (delete duplicate "
+"digital objects or rename storage_ids) and retry."
+msgstr ""
+
+#: src/Job/MediaToDigitalObject.php:81
+msgid "Property \"{term}\" not found, abort."
+msgstr ""
+
+#: src/Job/MediaToDigitalObject.php:90
+msgid ""
+"{mode}: {total} media will be converted to digital objects (property {term})."
+msgstr ""
+
+#: src/Job/MediaToDigitalObject.php:107
+msgid "Job stopped after converting {count} media."
+msgstr ""
+
+#: src/Job/MediaToDigitalObject.php:117
+msgid "Conversion failed for media {id}: {message}"
+msgstr ""
+
+#: src/Job/MediaToDigitalObject.php:123
+msgid "{count} / {total} media converted."
+msgstr ""
+
+#: src/Job/MediaToDigitalObject.php:129
+msgid "Conversion complete: {count} / {total} media converted."
+msgstr ""
+
+#: src/Job/DigitalObjectToMedia.php:49
+msgid ""
+"{count} digital objects are referenced by more than one item and will be "
+"skipped: {ids}"
+msgstr ""
+
+#: src/Job/DigitalObjectToMedia.php:60
+msgid "{mode}: {count} digital objects will be converted back to media."
+msgstr ""
+
+#: src/Job/DigitalObjectToMedia.php:75
+msgid "Job stopped after converting {count} digital objects."
+msgstr ""
+
+#: src/Job/DigitalObjectToMedia.php:92
+msgid "Conversion failed for digital object {id}: {message}"
+msgstr ""
+
+#: src/Job/DigitalObjectToMedia.php:98
+msgid "{count} / {total} digital objects converted."
+msgstr ""
+
+#: src/Job/DigitalObjectToMedia.php:106
+msgid ""
+"{count} digital objects are not referenced by any item and were skipped: "
+"{ids}"
+msgstr ""
+
+#: src/Job/DigitalObjectToMedia.php:115
+msgid ""
+"Conversion complete: {count} / {total} digital objects converted to media."
+msgstr ""
+
+#: src/Form/ConfigForm.php:19
+#, fuzzy
+#| msgid "Inline properties"
+msgid "Inline properties (render as media)"
+msgstr "Propriétés en ligne"
+
+#: src/Form/ConfigForm.php:20
+msgid ""
+"This setting allows to render digital objects as media. The RDF properties "
+"whose values pointing to a digital object will trigger its inline rendering "
+"in the referencing item. See readme for recommendations."
+msgstr ""
+
+#: src/Form/ConfigForm.php:29
+msgid "Select properties…"
+msgstr "Choisir des propriétés…"
+
+#: src/Form/ConfigForm.php:36
+msgid "Storage ID prefix"
+msgstr "Préfixe pour l’id de stockage"
+
+#: src/Form/ConfigForm.php:37
+msgid ""
+"A string to prepend to the storage_id of digital object files to avoid "
+"collisions with media files in database and file system."
+msgstr ""
+
+#: src/Form/ConfigForm.php:53
+msgid "Convert media to digital objects"
+msgstr ""
+
+#: src/Form/ConfigForm.php:54
+msgid ""
+"Run a background job that converts existing media into digital objects. "
+"Media ids are preserved. The item gets values referencing new digital "
+"objects via the configured property below."
+msgstr ""
+
+#: src/Form/ConfigForm.php:64
+msgid "Process conversion when saving the configuration"
+msgstr ""
+
+#: src/Form/ConfigForm.php:74
+msgid "Filter by ingester"
+msgstr "Filtrer par ingéreur"
+
+#: src/Form/ConfigForm.php:75
+msgid ""
+"Comma-separated list. Examples of file ingesters: upload, sideload. Non-file "
+"ingesters to exclude: youtube, oembed, iiif, url, html."
+msgstr ""
+
+#: src/Form/ConfigForm.php:87
+msgid "Filter by media type"
+msgstr "Filtrer par média-type"
+
+#: src/Form/ConfigForm.php:88
+msgid ""
+"Comma-separated list of media types or prefixes ending in /. Examples: "
+"image/, application/pdf, video/mp4."
+msgstr ""
+
+#: src/Form/ConfigForm.php:99
+msgid "Only media with an original file"
+msgstr "Seulement les médias avec un fichier original"
+
+#: src/Form/ConfigForm.php:100
+msgid ""
+"Skip media without original file. It is recommended to exclude non-file "
+"media: external urls, oEmbed, YouTube, IIIF, etc."
+msgstr ""
+
+#: src/Form/ConfigForm.php:111
+msgid "Limit to items matching this query"
+msgstr ""
+
+#: src/Form/ConfigForm.php:112
+msgid "Only media belonging to items matching this query will be converted."
+msgstr ""
+
+#: src/Form/ConfigForm.php:126
+msgid "Reference property"
+msgstr "Propriété référence"
+
+#: src/Form/ConfigForm.php:127
+msgid "RDF property used on the item to reference the new digital object."
+msgstr ""
+
+#: src/Form/ConfigForm.php:134
+msgid "Select a property…"
+msgstr "Choisir une propriété…"
+
+#: src/Form/ConfigForm.php:142 src/Form/ConfigForm.php:191
+msgid "Dry run"
+msgstr "Essai à blanc"
+
+#: src/Form/ConfigForm.php:143
+msgid "Log what would be converted without modifying the database."
+msgstr ""
+
+#: src/Form/ConfigForm.php:158
+msgid "Revert digital objects to media"
+msgstr ""
+
+#: src/Form/ConfigForm.php:159
+msgid ""
+"Reverse of the conversion above: for each digital object, restore a media "
+"row attached to its referencing item. Digital objects referenced by multiple "
+"items are skipped (would require duplication). The referencing value is "
+"removed by default."
+msgstr ""
+
+#: src/Form/ConfigForm.php:169
+msgid "Process reversion when saving the configuration"
+msgstr ""
+
+#: src/Form/ConfigForm.php:179
+msgid "Delete referencing values"
+msgstr "Supprimer les valeurs les référençant"
+
+#: src/Form/ConfigForm.php:180
+msgid ""
+"Drop the property values that pointed to each converted digital object. "
+"Recommended, otherwise the item ends up with both a media and a redundant "
+"resource value."
+msgstr ""
+
+#: src/Form/ConfigForm.php:192
+msgid "Log what would be reverted without modifying the database."
+msgstr ""
+
+#: src/ColumnType/Id.php:9
+msgid "Digital object id"
+msgstr "Id objet numérique"
+
+#: src/Controller/Admin/DigitalObjectController.php:63
+msgid "Digital object successfully created"
+msgstr "Objet numérique créé avec succès"
+
+#: src/Controller/Admin/DigitalObjectController.php:90
+msgid "Digital object successfully updated"
+msgstr "Objet numérique mis à jour avec succès"
+
+#: src/Controller/Admin/DigitalObjectController.php:142
+msgid "digital object"
+msgstr "objet numérique"
+
+#: src/Controller/Admin/DigitalObjectController.php:157
+msgid "Digital object successfully deleted"
+msgstr "Objet numérique supprimé avec succès"
+
+#: src/Controller/Admin/DigitalObjectController.php:188
+msgid "You must select at least one digital object to batch delete."
+msgstr "Vous devez choisir au moins un objet numérique à supprimer."
+
+#: src/Controller/Admin/DigitalObjectController.php:197
+msgid "Digital objects successfully deleted"
+msgstr "Objets numériques supprimés avec succès"
+
+#: src/Site/ResourcePageBlockLayout/NoDigitalObject.php:13
+msgid "No Digital Object"
+msgstr "Pas d’objet numérique"
+
+#: src/Site/ResourcePageBlockLayout/DigitalObjectsEmbeds.php:13
+msgid "Digital objects: Embeds"
+msgstr "Objets numériques : Embarqués"
+
+#: src/Site/ResourcePageBlockLayout/DigitalObjectsList.php:13
+msgid "Digital objects: List"
+msgstr "Objets numériques : Liste"
+
+#: src/Site/ResourcePageBlockLayout/DigitalObjectRender.php:13
+msgid "Digital object render"
+msgstr "Rendu objet numérique"
+
+#: src/Site/BlockLayout/DigitalObjects.php:82
+msgid "Embed"
+msgstr "Embarqué"
