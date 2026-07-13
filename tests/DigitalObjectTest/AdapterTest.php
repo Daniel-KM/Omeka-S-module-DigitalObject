@@ -15,6 +15,8 @@ use DigitalObject\Entity\DigitalObject as DigitalObjectEntity;
  */
 class AdapterTest extends AbstractTestCase
 {
+    use CreatesDigitalObjects;
+
     protected array $createdIds = [];
 
     public function setUp(): void
@@ -59,7 +61,7 @@ class AdapterTest extends AbstractTestCase
 
     public function testCreateReadDeleteRoundTrip(): void
     {
-        $created = $this->api()->create('digital_objects', [])->getContent();
+        $created = $this->persistDigitalObject();
         self::assertInstanceOf(DigitalObjectRepresentation::class, $created);
         $id = $created->id();
         $this->createdIds['digital_objects'][] = $id;
@@ -77,7 +79,7 @@ class AdapterTest extends AbstractTestCase
 
     public function testStiDiscriminatorResolvesViaAbstractResourceFind(): void
     {
-        $created = $this->api()->create('digital_objects', [])->getContent();
+        $created = $this->persistDigitalObject();
         $id = $created->id();
         $this->createdIds['digital_objects'][] = $id;
 
@@ -91,10 +93,35 @@ class AdapterTest extends AbstractTestCase
         );
     }
 
+    public function testReturnScalarDoesNotIncludeStorageId(): void
+    {
+        $created = $this->persistDigitalObject();
+        $this->createdIds['digital_objects'][] = $created->id();
+
+        try {
+            $this->api()->search(
+                'digital_objects',
+                ['id' => [$created->id()]],
+                ['returnScalar' => 'storage_id']
+            );
+            self::fail('storage_id must not be a public scalar field.');
+        } catch (\Throwable $e) {
+            self::assertStringContainsString('storage_id', $e->getMessage());
+        }
+
+        // Confirm a legitimate scalar field still works.
+        $ids = $this->api()->search(
+            'digital_objects',
+            ['id' => [$created->id()]],
+            ['returnScalar' => 'id']
+        )->getContent();
+        self::assertSame([$created->id() => $created->id()], $ids);
+    }
+
     public function testApiSearchByIdsReturnsOnlyMatching(): void
     {
-        $a = $this->api()->create('digital_objects', [])->getContent();
-        $b = $this->api()->create('digital_objects', [])->getContent();
+        $a = $this->persistDigitalObject();
+        $b = $this->persistDigitalObject();
         $this->createdIds['digital_objects'][] = $a->id();
         $this->createdIds['digital_objects'][] = $b->id();
 

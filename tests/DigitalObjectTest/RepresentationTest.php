@@ -12,6 +12,8 @@ use Omeka\Api\Representation\ItemRepresentation;
  */
 class RepresentationTest extends AbstractTestCase
 {
+    use CreatesDigitalObjects;
+
     protected array $createdIds = [];
 
     public function setUp(): void
@@ -101,10 +103,57 @@ class RepresentationTest extends AbstractTestCase
         self::assertSame('o:DigitalObject', $do->getResourceJsonLdType());
     }
 
+    public function testJsonLdDoesNotExposeStorageId(): void
+    {
+        $do = $this->createMinimalDigitalObject();
+        $jsonLd = $do->getResourceJsonLd();
+        self::assertArrayNotHasKey(
+            'o:storage_id',
+            $jsonLd,
+            'storage_id is internal and must not be exposed in the API json-ld output.'
+        );
+    }
+
+    public function testAltTextResolvedFallsBackToSettingProperty(): void
+    {
+        $api = $this->api();
+        $settings = $this->getService('Omeka\Settings');
+
+        $do = $this->createMinimalDigitalObject();
+        self::assertNull($do->altTextResolved(), 'No alt_text and no fallback setting: null.');
+
+        $previous = $settings->get('media_alt_text_property');
+        $settings->set('media_alt_text_property', 'dcterms:title');
+        try {
+            $api->update(
+                'digital_objects',
+                $do->id(),
+                [
+                    'dcterms:title' => [[
+                        'type' => 'literal',
+                        'property_id' => $this->getPropertyId('dcterms:title'),
+                        '@value' => 'Fallback title',
+                    ]],
+                ],
+                [],
+                ['isPartial' => true]
+            );
+            $do = $api->read('digital_objects', $do->id())->getContent();
+            self::assertSame('Fallback title', (string) $do->altTextResolved());
+        } finally {
+            $settings->set('media_alt_text_property', $previous);
+        }
+    }
+
+    protected function getPropertyId(string $term): int
+    {
+        $easyMeta = $this->getService('Common\EasyMeta');
+        return (int) $easyMeta->propertyId($term);
+    }
+
     protected function createMinimalDigitalObject(): DigitalObjectRepresentation
     {
-        $response = $this->api()->create('digital_objects', []);
-        $do = $response->getContent();
+        $do = $this->persistDigitalObject();
         $this->createdIds['digital_objects'][] = $do->id();
         return $do;
     }
