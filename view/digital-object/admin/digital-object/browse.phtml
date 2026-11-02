@@ -28,11 +28,15 @@ $this->headLink()->appendStylesheet($this->assetUrl('css/digital-object.css', 'D
         <select class="batch-actions-select" aria-label="<?php echo $translate('Batch actions'); ?>">
             <option value="default"><?php echo $translate('Batch actions'); ?></option>
             <option value="delete-selected" disabled="disabled"><?php echo $translate('Delete selected'); ?></option>
+            <?php if ($this->userIsAllowed('DigitalObject\Api\Adapter\DigitalObjectAdapter', 'batch_delete_all')): ?>
+            <option value="delete-all"><?php echo $translate('Delete all'); ?></option>
+            <?php endif; ?>
         </select>
         <div class="batch-actions">
             <button type="button" class="default active" disabled="disabled"><?php echo $translate('Go'); ?></button>
             <input type="hidden" name="query" class="batch-query" value="<?php echo $escape(json_encode($this->params()->fromQuery())); ?>">
             <a class="delete button sidebar-content delete-selected" data-sidebar-selector="#sidebar-delete-selected"><?php echo $translate('Go'); ?></a>
+            <a class="delete button sidebar-content delete-all" data-sidebar-selector="#sidebar-delete-all"><?php echo $translate('Go'); ?></a>
         </div>
     </div>
     <?php endif; ?>
@@ -122,16 +126,48 @@ $this->headLink()->appendStylesheet($this->assetUrl('css/digital-object.css', 'D
     </div>
 </div>
 
+<div id="sidebar-delete-all" class="sidebar">
+    <?php echo $this->hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+    ]); ?>
+    <div class="sidebar-content">
+        <div id="sidebar-confirm">
+            <h3><?php echo $translate('Delete digital objects'); ?></h3>
+            <p><?php echo $translate('Are you sure you would like to delete all digital objects on all pages of this result?'); ?></p>
+            <p class="error"><?php echo sprintf(
+                $translate('%1$s: this action will permanently delete %2$s digital objects and cannot be undone.'),
+                sprintf('<strong>%s</strong>', $translate('Warning')),
+                sprintf('<strong>%s</strong>', number_format($this->pagination()->getPaginator()->getTotalCount()))
+            ); ?></p>
+            <label><input type="checkbox" name="confirm-delete-all-check"> <?php echo $translate('Are you sure?'); ?></label>
+            <?php echo $this->form($this->formDeleteAll); ?>
+        </div>
+    </div>
+</div>
+
 <script>
-$('#confirm-delete-selected').on('submit', function(e) {
+// Complete the batch delete form after confirmation.
+$('#confirm-delete-selected, #confirm-delete-all').on('submit', function(e) {
     var confirmForm = $(this);
-    $('#batch-form').find('input[name="resource_ids[]"]:checked:not(:disabled)').each(function() {
-        confirmForm.append($(this).clone().prop('disabled', false).attr('type', 'hidden'));
-    });
+    if ('confirm-delete-all' === this.id) {
+        confirmForm.append($('.batch-query').clone());
+    } else {
+        $('#batch-form').find('input[name="resource_ids[]"]:checked:not(:disabled)').each(function() {
+            confirmForm.append($(this).clone().prop('disabled', false).attr('type', 'hidden'));
+        });
+    }
+});
+$('.delete-all').on('click', function(e) {
+    Omeka.closeSidebar($('#sidebar-delete-selected'));
 });
 $('.delete-selected').on('click', function(e) {
+    Omeka.closeSidebar($('#sidebar-delete-all'));
     var inputs = $('input[name="resource_ids[]"]');
     $('#delete-selected-count').text(inputs.filter(':checked').length);
+});
+$('#sidebar-delete-all').on('click', 'input[name="confirm-delete-all-check"]', function(e) {
+    $('#confirm-delete-all input[type="submit"]').prop('disabled', this.checked ? false : true);
 });
 </script>
 

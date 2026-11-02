@@ -76,6 +76,12 @@ class Module extends AbstractModule
                 ['batch-delete-all']
             )
             ->allow($contributors, $adapter, ['create', 'update', 'delete', 'batch_update', 'batch_delete'])
+            ->allow(
+                [\Omeka\Permissions\Acl::ROLE_REVIEWER, \Omeka\Permissions\Acl::ROLE_EDITOR],
+                $adapter,
+                'batch_update_all'
+            )
+            ->allow(\Omeka\Permissions\Acl::ROLE_EDITOR, $adapter, 'batch_delete_all')
             ->allow($contributors, $entity, 'create')
 
             // Author: update and delete own digital objects only.

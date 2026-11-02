@@ -245,4 +245,29 @@ class DigitalObjectController extends AbstractActionController
         }
         return $this->redirect()->toRoute(null, ['action' => 'browse'], ['query' => $returnQuery], true);
     }
+
+    public function batchDeleteAllAction()
+    {
+        if (!$this->getRequest()->isPost()) {
+            return $this->redirect()->toRoute(null, ['action' => 'browse'], true);
+        }
+
+        // Derive the query, removing limiting and sorting params.
+        $query = json_decode($this->params()->fromPost('query', ''), true) ?: [];
+        unset($query['submit'], $query['page'], $query['per_page'], $query['limit'],
+            $query['offset'], $query['sort_by'], $query['sort_order']);
+
+        $form = $this->getForm(ConfirmForm::class);
+        $form->setData($this->getRequest()->getPost());
+        if ($form->isValid()) {
+            $this->jobDispatcher()->dispatch(\Omeka\Job\BatchDelete::class, [
+                'resource' => 'digital_objects',
+                'query' => $query,
+            ]);
+            $this->messenger()->addSuccess('Deleting digital objects. This may take a while.'); // @translate
+        } else {
+            $this->messenger()->addFormErrors($form);
+        }
+        return $this->redirect()->toRoute(null, ['action' => 'browse'], ['query' => $this->params()->fromQuery()], true);
+    }
 }
