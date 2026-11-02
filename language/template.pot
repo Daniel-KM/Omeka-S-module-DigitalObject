@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 00:00+0000\n"
+"POT-Creation-Date: 2026-11-02 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,38 +17,38 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Module.php:78
+#: Module.php:139
 msgid "WARNING"
 msgstr ""
 
-#: Module.php:80
+#: Module.php:142
 #, php-format
 msgid ""
 "%d digital objects still exist. Without conversion, files and derivatives "
 "will be left on disk."
 msgstr ""
 
-#: Module.php:85
+#: Module.php:147
 msgid ""
 "Convert digital objects back to media before uninstalling (synchronous, may "
 "be long)."
 msgstr ""
 
-#: Module.php:106
+#: Module.php:168
 #, php-format
 msgid ""
 "Cannot uninstall: %d digital objects still exist. Tick the conversion "
 "checkbox in the uninstall confirmation, or convert/delete them beforehand."
 msgstr ""
 
-#: Module.php:123
+#: Module.php:185
 #, php-format
 msgid ""
 "Conversion incomplete: %d digital objects could not be converted. Check job "
 "logs and retry."
 msgstr ""
 
-#: Module.php:138
+#: Module.php:200
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
@@ -103,27 +103,35 @@ msgstr ""
 msgid "Add new digital object"
 msgstr ""
 
-#: view/digital-object/admin/digital-object/browse.phtml:55
+#: view/digital-object/admin/digital-object/browse.phtml:59
 #: view/digital-object/admin/digital-object/sidebar-select.phtml:8
 msgid "Select digital object"
 msgstr ""
 
-#: view/digital-object/admin/digital-object/browse.phtml:113
+#: view/digital-object/admin/digital-object/browse.phtml:117
+#: view/digital-object/admin/digital-object/browse.phtml:136
 msgid "Delete digital objects"
 msgstr ""
 
-#: view/digital-object/admin/digital-object/browse.phtml:114
+#: view/digital-object/admin/digital-object/browse.phtml:118
 msgid "Are you sure you would like to delete the selected digital objects?"
 msgstr ""
 
-#: view/digital-object/admin/digital-object/browse.phtml:116
+#: view/digital-object/admin/digital-object/browse.phtml:120
+#: view/digital-object/admin/digital-object/browse.phtml:139
 #, php-format
 msgid ""
 "%1$s: this action will permanently delete %2$s digital objects and cannot be "
 "undone."
 msgstr ""
 
-#: view/digital-object/admin/digital-object/browse.phtml:141
+#: view/digital-object/admin/digital-object/browse.phtml:137
+msgid ""
+"Are you sure you would like to delete all digital objects on all pages of "
+"this result?"
+msgstr ""
+
+#: view/digital-object/admin/digital-object/browse.phtml:177
 msgid "Omeka could not find any digital objects."
 msgstr ""
 
@@ -167,10 +175,6 @@ msgstr ""
 
 #: view/omeka/site-admin/index/theme-resource-pages.phtml:38
 msgid "Digital object page"
-msgstr ""
-
-#: Module.php:78
-msgid "</strong>: "
 msgstr ""
 
 #: src/Job/MediaToDigitalObject.php:56
@@ -416,6 +420,10 @@ msgstr ""
 
 #: src/Controller/Admin/DigitalObjectController.php:241
 msgid "Digital objects successfully deleted"
+msgstr ""
+
+#: src/Controller/Admin/DigitalObjectController.php:267
+msgid "Deleting digital objects. This may take a while."
 msgstr ""
 
 #: src/Site/ResourcePageBlockLayout/NoDigitalObject.php:13

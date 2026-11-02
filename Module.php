@@ -135,7 +135,9 @@ class Module extends AbstractModule
         $escapeAttr = $view->plugin('escapeHtmlAttr');
         $t = $services->get('MvcTranslator');
 
-        $html = '<p style="color:#c00"><strong>' . $escape($t->translate('WARNING')) . '</strong>: '; // @translate
+        $html = '<p style="color:#c00"><strong>'
+            . $escape($t->translate('WARNING')) // @translate
+            . '</strong>: ';
         $html .= $escape(sprintf(
             $t->translate('%d digital objects still exist. Without conversion, files and derivatives will be left on disk.'), // @translate
             $count
