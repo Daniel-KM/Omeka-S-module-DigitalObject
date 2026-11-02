@@ -104,7 +104,25 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
         $uploader = $services->get('Omeka\File\Uploader');
 
         $tempFile = null;
-        if (isset($fileData['file'])) {
+        $isCallerTempFile = false;
+        if (array_key_exists('ingest_tempfile', $content)) {
+            // An internal process (for example the ocr extraction of module
+            // IIIF Search) passes its temp file as an object, which is not
+            // possible via the rest api or a form, so no file of the server
+            // can be read. The temp file remains owned by the caller.
+            $tempFile = $content['ingest_tempfile'];
+            if (!$tempFile instanceof TempFile) {
+                $errorStore->addError('ingest_tempfile', 'The file is not a temp file.'); // @translate
+                return;
+            }
+            $isCallerTempFile = true;
+            if (!$tempFile->getSourceName() && !empty($content['o:source'])) {
+                $tempFile->setSourceName((string) $content['o:source']);
+            }
+            if (empty($content['o:source']) && $tempFile->getSourceName()) {
+                $entity->setSource($tempFile->getSourceName());
+            }
+        } elseif (isset($fileData['file'])) {
             $upload = is_array($fileData['file']) && isset($fileData['file']['tmp_name'])
                 ? $fileData['file']
                 : (isset($fileData['file'][0]) ? $fileData['file'][0] : null);
@@ -134,7 +152,7 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
             return;
         }
 
-        $this->applyTempFile($tempFile, $entity);
+        $this->applyTempFile($tempFile, $entity, $errorStore, !$isCallerTempFile);
     }
 
     /**
@@ -240,7 +258,7 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
         $path = (string) parse_url($url, PHP_URL_PATH);
         $tempFile->setSourceName($path !== '' ? basename($path) : $url);
         $entity->setSource($url);
-        $this->applyTempFile($tempFile, $entity);
+        $this->applyTempFile($tempFile, $entity, $errorStore);
     }
 
     /**
@@ -321,8 +339,26 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
         }
     }
 
-    protected function applyTempFile(TempFile $tempFile, EntityInterface $entity): void
-    {
+    /**
+     * Validate and store a temp file as the file of the digital object.
+     *
+     * The file is validated like the file of a media, according to the allowed
+     * media types and extensions.
+     */
+    protected function applyTempFile(
+        TempFile $tempFile,
+        EntityInterface $entity,
+        ErrorStore $errorStore,
+        bool $deleteTempFile = true
+    ): void {
+        $validator = $this->getServiceLocator()->get('Omeka\File\Validator');
+        if (!$validator->validate($tempFile, $errorStore)) {
+            if ($deleteTempFile) {
+                $tempFile->delete();
+            }
+            return;
+        }
+
         $prefix = $this->getServiceLocator()
             ->get('Config')['digitalobject']['config']['digitalobject_storage_prefix'] ?? '';
         $storageId = $prefix . $tempFile->getStorageId();
@@ -340,6 +376,8 @@ class DigitalObjectAdapter extends AbstractResourceEntityAdapter
         $hasThumbnails = $tempFile->storeThumbnails();
         $entity->setHasThumbnails((bool) $hasThumbnails);
 
-        $tempFile->delete();
+        if ($deleteTempFile) {
+            $tempFile->delete();
+        }
     }
 }
