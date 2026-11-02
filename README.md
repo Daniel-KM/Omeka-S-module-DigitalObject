@@ -80,7 +80,7 @@ Choosing the right one preserves the semantics for linked-data consumers; the
 module itself treats both lists identically. Standard candidates, by use case:
 
 | Vocabulary    | Property                                                      | Use case                                                |
-|---------------|------------------------------------------------------------- -|---------------------------------------------------------|
+|---------------|---------------------------------------------------------------|---------------------------------------------------------|
 | Dublin Core   | `dcterms:hasFormat` (default, "another format of the whole")  | Generic, neutral on media type and described entity     |
 | Dublin Core   | `dcterms:hasPart` (default, "component of the whole")         | Generic, neutral on media type and described entity     |
 | BIBFRAME      | `bf:hasInstance` / `bf:hasItem` / `bf:electronicLocator`      | Libraries (Library of Congress, MARC successor)         |
@@ -172,6 +172,15 @@ A manifest describes a compound object, not a single file, so referencing one as
 a digital object is mostly useful to attach a remote object (for example an item
 or a collection of another institution) to an item set. For a local compound
 object, prefer an item served by IiifServer.
+
+The file of a digital object is created from an uploaded file (`file`), from a
+file of the directory of the module FileSideload (`ingest_filename`), from a url
+(`ingest_url`), or, for an internal process, from a temp file passed as object
+(`ingest_tempfile`, a `Omeka\File\TempFile`). The last one is not possible via
+the rest api or a form, so no file of the server can be read, and it requires no
+http request and no module FileSideload; the temp file remains owned by the
+caller, that removes it. Each file is validated like the file of a media,
+according to the allowed media types and extensions.
 
 
 TODO
@@ -289,6 +298,6 @@ currently managed with a proprietary software.
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
 [OSI]: http://opensource.org
-[Musee de Bretagne]: http://collections.musee-bretagne.fr
+[Musée de Bretagne]: http://collections.musee-bretagne.fr
 [GitLab]: https://gitlab.com/Daniel-KM
 [Daniel-KM]: https://gitlab.com/Daniel-KM "Daniel Berthereau"
