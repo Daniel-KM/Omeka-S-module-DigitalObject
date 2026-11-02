@@ -16,7 +16,6 @@ use Common\TraitModule;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\Mvc\Controller\AbstractController;
 use Laminas\Mvc\MvcEvent;
-use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Module\AbstractModule;
 
 class Module extends AbstractModule
@@ -29,35 +28,73 @@ class Module extends AbstractModule
     {
         parent::onBootstrap($event);
 
-        $services = $this->getServiceLocator();
-        $acl = $services->get('Omeka\Acl');
+        $this->addAclRules();
+    }
+
+    /**
+     * Same rules than core items and media (see Omeka\Service\AclFactory).
+     *
+     * Site admin and global admin are allowed everything by the core.
+     */
+    protected function addAclRules(): void
+    {
+        /** @var \Omeka\Permissions\Acl $acl */
+        $acl = $this->getServiceLocator()->get('Omeka\Acl');
 
         $entity = Entity\DigitalObject::class;
         $adapter = Api\Adapter\DigitalObjectAdapter::class;
+        $adminController = 'DigitalObject\Controller\Admin\DigitalObject';
+        $siteController = 'DigitalObject\Controller\Site\DigitalObject';
+
+        $contributors = [
+            \Omeka\Permissions\Acl::ROLE_AUTHOR,
+            \Omeka\Permissions\Acl::ROLE_REVIEWER,
+            \Omeka\Permissions\Acl::ROLE_EDITOR,
+        ];
+        $viewers = array_merge([\Omeka\Permissions\Acl::ROLE_RESEARCHER], $contributors);
 
         $acl
+            // Visibility of private resources is managed by the core filter.
+            ->allow(null, $adapter, ['search', 'read'])
+            ->allow(null, $entity, 'read')
+            ->allow(null, $siteController)
+
             ->allow(
-                null,
-                [$entity, $adapter],
-                ['read', 'search']
+                $viewers,
+                $adminController,
+                ['index', 'browse', 'show', 'show-details', 'search', 'sidebar-select']
             )
-            // Public access to the site controller (like core site
-            // controllers).
+
             ->allow(
-                null,
-                ['DigitalObject\Controller\Site\DigitalObject']
+                $contributors,
+                $adminController,
+                ['add', 'edit', 'delete', 'delete-confirm', 'batch-delete']
             )
             ->allow(
-                [
-                    \Omeka\Permissions\Acl::ROLE_AUTHOR,
-                    \Omeka\Permissions\Acl::ROLE_REVIEWER,
-                    \Omeka\Permissions\Acl::ROLE_EDITOR,
-                    \Omeka\Permissions\Acl::ROLE_SITE_ADMIN,
-                    \Omeka\Permissions\Acl::ROLE_GLOBAL_ADMIN,
-                ],
-                [$entity, $adapter],
-                ['create', 'update', 'delete']
-            );
+                \Omeka\Permissions\Acl::ROLE_EDITOR,
+                $adminController,
+                ['batch-delete-all']
+            )
+            ->allow($contributors, $adapter, ['create', 'update', 'delete', 'batch_update', 'batch_delete'])
+            ->allow($contributors, $entity, 'create')
+
+            // Author: update and delete own digital objects only.
+            ->allow(
+                \Omeka\Permissions\Acl::ROLE_AUTHOR,
+                $entity,
+                ['update', 'delete'],
+                new \Omeka\Permissions\Assertion\OwnsEntityAssertion()
+            )
+            // Reviewer: update all, delete own only.
+            ->allow(\Omeka\Permissions\Acl::ROLE_REVIEWER, $entity, 'update')
+            ->allow(
+                \Omeka\Permissions\Acl::ROLE_REVIEWER,
+                $entity,
+                'delete',
+                new \Omeka\Permissions\Assertion\OwnsEntityAssertion()
+            )
+            // Editor: update and delete all.
+            ->allow(\Omeka\Permissions\Acl::ROLE_EDITOR, $entity, ['update', 'delete']);
     }
 
     public function warnUninstall($event): void
